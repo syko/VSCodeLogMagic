@@ -69,7 +69,7 @@ export const common = {
 			for (let i = 0; i < tokens.length; i++) {
 				const token = tokens[i];
 				if (token.type === TOKEN_IDENTIFIER) {
-					// Identifier detected, start accumulating a chain
+					// Identifier detected, accumulate a chain
 					chain = [];
 					for (let j = i; j < tokens.length; j++) {
 						if (isChainLink[chain.length % 2](tokens[j])) chain.push(tokens[j]);
@@ -99,10 +99,13 @@ export const common = {
 		for (let i = 0; i < tokens.length - 3; i++) {
 			const token: Token = tokens[i];
 			if (token.type !== TOKEN_IDENTIFIER) continue;
+			// Detect if there's a '[' after an identifier and if so, get the whole [...] block
 			if (tokens[i + 1].type !== TOKEN_PUNCTUATION || tokens[i + 1].value !== '[') continue;
 			const block: Token[] = getCodeBlockAt(tokens, i + 1);
+			// If code block does not end with ']', it's an incomplete block => ignore
 			if (block[block.length - 1].type !== TOKEN_PUNCTUATION || block[block.length - 1].value !== ']') continue;
 			token.value += combineTokenValues(block);
+			// Remove the [...] part unless there's an identifier in there
 			if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) tokens.splice(i + 1, block.length);
 		}
 	},
