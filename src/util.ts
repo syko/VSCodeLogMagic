@@ -1,22 +1,26 @@
-import {Token, TOKEN_IDENTIFIER, TOKEN_PUNCTUATION} from "./tokenizer";
+import {Token, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
 import {ParseResult, ParseStep} from "./parser";
 
 export const getCodeBlockAt = (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] => {
-	const P: string = '{[()]}';
+	const P: string = '{[(<>)]}';
 	const initialParen: string = '' + tokens[startIndex].value;
 	const includedTokens: Token[] = [tokens[startIndex]];
 	let depth = 0;
 
+	const isPuncOrOp = (t: Token): boolean => {
+		return t.type == TOKEN_PUNCTUATION || t.type == TOKEN_OPERATOR;
+	}
+
 	const isSameParen = (t: Token): boolean => {
-		return t.type === TOKEN_PUNCTUATION && t.value === initialParen;
+		return isPuncOrOp(t) && t.value === initialParen;
 	}
 
 	const isOppositeParen = (t: Token): boolean => {
-		return t.type === TOKEN_PUNCTUATION && t.value === P[5 - P.indexOf(initialParen)];
+		return isPuncOrOp(t) && t.value === P[P.length - 1 - P.indexOf(initialParen)];
 	}
 
-	if (tokens[startIndex].type !== TOKEN_PUNCTUATION || !P.includes(initialParen)) {
-		throw new Error("getCodeBlockAt requires one of {[()]} to be at startIndex position");
+	if (!isPuncOrOp(tokens[startIndex]) || !P.includes(initialParen)) {
+		throw new Error(`getCodeBlockAt requires one of ${P} to be at startIndex position`);
 	}
 
 	for (let i = startIndex + direction; i > 0 && i < tokens.length; i += direction) {
@@ -67,4 +71,12 @@ export const getExpressionAt = (tokens: Token[], startIndex: number, direction: 
 	}
 
 	return includedTokens;
+};
+
+export const quoteString = (str: string): string => {
+	return `"${str.replace('"', '\\"')}"`
+}
+
+export const combineTokenValues = (tokens: Token[]): string => {
+	return tokens.reduce((acc: string, t: Token) => acc + (t.type === TOKEN_STRING ? quoteString('' + t.value) : t.value), '');
 };

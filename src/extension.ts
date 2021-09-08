@@ -33,7 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
 		// const {text} = editor.document.lineAt(editor.selection.active.line);
 		// javascript, typescript, csharp
 		const parse = getParser(vscode.window.activeTextEditor?.document.languageId || 'javascript');
-		console.log("Result", parse(`} else if(123) { let varname = someFnCall(foo, _ => someCall(var1, var2), (foo) => foo + 123, (boo) => { return boo + 123 }, 999);`));
+		try {
+			console.log("Result", parse(`if(someVar[123] == 123) { foo(someVar["fo\\"o", "bar"])}`));
+		} catch (e) {
+			console.error(e);
+		}
 
 	});
 
