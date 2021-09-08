@@ -1,7 +1,6 @@
 export const TOKEN_NUMBER = 'number';
 export const TOKEN_STRING = 'string';
 export const TOKEN_IDENTIFIER = 'identifier';
-export const TOKEN_IDENTIFIER_CHAIN = '.';
 export const TOKEN_KEYWORD = 'keyword';
 export const TOKEN_PUNCTUATION = 'punctuation';
 export const TOKEN_OPERATOR = 'operator'
@@ -15,15 +14,22 @@ export type TokenType = typeof TOKEN_NUMBER
     | typeof TOKEN_OPERATOR
     | typeof TOKEN_COMMENT;
 
+/**
+ * A Token represents an individual piece of code, like a string, number, punctuation character, variable (identifier), etc...
+ */
 export type Token = {
     type: TokenType;
 	value: string | number;
 };
 
+/**
+ * The syntax configuration that can be specified for each language.
+ */
 export type TokenizerConf = {
 	PUNCTUATION: string;
 	IDENTIFIER_START: string;
     IDENTIFIER: string;
+    IDENTIFIER_CHAIN: string;
     DIGIT: string;
     OPERATOR: string;
     STRING_DELIM: string;
@@ -34,17 +40,20 @@ export type TokenizerConf = {
     KEYWORD: string[];
 };
 
+/**
+ * A Tokenizer is a function that takes a line of code as a string and returns an array of Token objets.
+ */
 export type Tokenizer = (input: string) => Token[];
 
+/**
+ * Create and return a tokenizer function according to the given syntax configuration.
+ * 
+ * @param conf The syntax configuration for this tokenizer
+ * @returns The tokenizer function
+ */
 export function createTokenizer(conf: TokenizerConf): Tokenizer {
 
     let i = 0; // Internal caret that is moved forward
-
-    function readWhile(input: string, conditionFn: (char: string) => boolean) {
-        let chars = []
-        while (conditionFn(input[i])) chars.push(input[i++]);
-        return chars.join('');
-    }
 
     // Conditionals
 
@@ -90,6 +99,28 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
 
     // Read funcions
 
+    /**
+     * Read the input string, moving the internal caret forward until conditionFn returns false.
+     *
+     * @param input The input string to read
+     * @param conditionFn (char: string) => boolean. Called for each character read. Return false to end reading.
+     * @returns The string that was read until, and excluding, the character to which conditionFn returned false.
+     */
+    function readWhile(input: string, conditionFn: (char: string) => boolean) {
+        let chars = []
+        while (conditionFn(input[i])) chars.push(input[i++]);
+        return chars.join('');
+    }
+
+    /**
+     * Read the input string, moving the internal caret forward until endDelim is encountered.
+     * Used for reading whole strings and comments.
+     *
+     * @param input The input string to read
+     * @param endDelim Read until this string is encountered
+     * @param canEscape If true, endDelim can be escaped by '\', meaning that it won't end the reading
+     * @returns The string that was read until endDelim was encountered
+     */
     function readUntil(input: string, endDelim: string, canEscape: boolean = true): string {
         let str = ''
         let escaped = false
@@ -107,10 +138,19 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
         return str;
     }
 
-    function skipWhitespace(input: string):number {
-        return readWhile(input, isWhitespace).length;
+    /**
+     * Read the input string and move the internal caret forward until something non-whitespace is encountered.
+     * @param input The string to read
+     */
+    function skipWhitespace(input: string): void {
+        readWhile(input, isWhitespace);
     }
 
+    /**
+     * Read a number (integer/decimal) at the current caret position in the input string and move the internal caret forward.
+     * @param input The input string to read
+     * @returns A number Token
+     */
     function readNumber(input: string): Token {
         const str = readWhile(input, (char: string) => {
             let seenDot = false;
@@ -119,19 +159,39 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
         return { type: TOKEN_NUMBER, value: parseFloat(str) }
     }
 
+    /**
+     * Read an operator at the current caret position in the input string and move the internal caret forward.
+     * @param input The input string to read
+     * @returns An operator Token
+     */
     function readOperator(input: string): Token {
         return { type: TOKEN_OPERATOR, value: readWhile(input, isOperator) }
     }
 
+    /**
+     * Read a punctuation character at the current caret position in the input string and move the internal caret forward.
+     * @param input The input string to read
+     * @returns A punctuation Token
+     */
     function readPunctuation(input: string): Token {
         return { type: TOKEN_PUNCTUATION, value: input[i++] }
     }
 
+    /**
+     * Read an identifier / keyword at the current caret position in the input string and move the internal caret forward.
+     * @param input The input string to read
+     * @returns A identifier or keyword Token
+     */
     function readIdentifier(input: string): Token {
         const str = readWhile(input, isIdentifier);
         return { type: isKeyword(str) ? TOKEN_KEYWORD: TOKEN_IDENTIFIER, value: str }
     }
 
+    /**
+     * Read a quoted string at the current caret position in the input string and move the internal caret forward.
+     * @param input The input string to read
+     * @returns A string Token
+     */
     function readString(input: string, quoteChar: string): Token {
         i += quoteChar.length;
         const str = readUntil(input, quoteChar);
@@ -139,12 +199,24 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
         return { type: TOKEN_STRING, value: str }
     }
 
+    /**
+     * Read a single line comment at the current caret position in the input string and move the internal caret forward.
+     * This advances the caret to the end of the input string.
+     * 
+     * @param input The input string to read
+     * @returns A comment Token
+     */
     function readSingleLineComment(input: string): Token {
         const str = input.substr(i + conf.SINGLE_LINE_COMMENT.length);
         i = input.length
         return { type: TOKEN_COMMENT, value: str }
     }
 
+    /**
+     * Read multiline comment at the current caret position in the input string and move the internal caret forward.
+     * @param input The input string to read
+     * @returns A comment Token
+     */
     function readMultiLineComment(input: string): Token {
         i += conf.MULTI_LINE_COMMENT_START.length;
         const str = readUntil(input, conf.MULTI_LINE_COMMENT_END, false);
@@ -154,6 +226,13 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
 
     // Main
 
+    /**
+     * The tokenize function takes a line of code as a string and returns an array of Token objets that
+     * represent individual code atoms.
+     *
+     * @param input The input string to tokenize
+     * @returns an array of Tokens
+     */
     function tokenize(input: string): Token[] {
         const tokens: Token[] = [];
         let j = 0

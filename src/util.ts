@@ -1,6 +1,15 @@
 import {Token, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
 import {ParseResult, ParseStep} from "./parser";
 
+/**
+ * Return a code block (a section of code wrapped in (), [], {} or <>) start starts or ends at startIndex.
+ * Nested code blocks are ignored.
+ * 
+ * @param tokens Array of tokens in which the code block is searched for
+ * @param startIndex The index at which the code block starts or ends (based on direction)
+ * @param direction The direction in which to look for the code block starting from startIndex. -1 or 1.
+ * @returns Array of tokens that form the code block, including the wrapping characters.
+ */
 export const getCodeBlockAt = (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] => {
 	const P: string = '{[(<>)]}';
 	const initialParen: string = '' + tokens[startIndex].value;
@@ -33,6 +42,16 @@ export const getCodeBlockAt = (tokens: Token[], startIndex: number, direction: -
 	return includedTokens;
 };
 
+/**
+ * Return an expression start starts or ends at startIndex. An expression is considered anything that starts
+ * at startIndex, which is not an expression-break character and expands in the given direction until
+ * an expression-break character is found: either , or ; or a paren/bracket/brace that ends/begins the current code block.
+ * 
+ * @param tokens Array of tokens in which the expression is searched for
+ * @param startIndex The index at which the expression starts or ends (based on direction)
+ * @param direction The direction in which to look for the expression starting from startIndex. -1 or 1.
+ * @returns Array of tokens that form the expression, including the wrapping characters.
+ */
 export const getExpressionAt = (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] => {
 	const P: string = '{[()]}';
 	const openingP: string = '{[(';
@@ -72,11 +91,23 @@ export const getExpressionAt = (tokens: Token[], startIndex: number, direction: 
 
 	return includedTokens;
 };
-
-export const quoteString = (str: string): string => {
-	return `"${str.replace('"', '\\"')}"`
+ 
+/**
+ * Wraps the given string in quotation marks and also escapes the same quotation marks in the string.
+ * 
+ * @param str The string to wrap in quotation marks
+ * @returns The quoted string
+ */
+export const quoteString = (str: string, quoteChar: string = '"'): string => {
+	return `${quoteChar}${str.replace('${quoteChar}', '\\${quoteChar}')}${quoteChar}`
 }
 
+/**
+ * Return a concatenated token value of the given array of tokens. Quotes string values as necessary.
+ * 
+ * @param tokens The tokens whose values to combine
+ * @returns A string of concatenated token values
+ */
 export const combineTokenValues = (tokens: Token[]): string => {
 	return tokens.reduce((acc: string, t: Token) => acc + (t.type === TOKEN_STRING ? quoteString('' + t.value) : t.value), '');
 };

@@ -5,11 +5,13 @@ import {getCodeBlockAt} from "../util";
 
 const LOG_ID_KEYWORDS = ['if', 'return', 'else if', 'else', 'switch', 'case'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
+const IDENTIFIER_CHAIN_CHARS = ['.']
 
 const tokenizerConf: TokenizerConf = {
     PUNCTUATION: ',.;\\[]{}@#$()~',
     IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
     IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
+    IDENTIFIER_CHAIN: '.',
     DIGIT: '1234567890',
     OPERATOR: '-+/*%=<>!|&^?:',
     STRING_DELIM: "\"'\`",
@@ -72,7 +74,7 @@ const removeTypes: ParseStep = (result: ParseResult) => {
 
 const parseSequence: ParseSequence = [
     common.removeComments,
-    common.combineIdentifierChains,
+    common.getCombineIdentifierChainsFn(IDENTIFIER_CHAIN_CHARS),
     common.combineBracketNotation,
     removeTypes,
     common.removeLambdas,
