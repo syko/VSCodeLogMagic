@@ -2,7 +2,7 @@ import {opendir} from "fs";
 import {start} from "repl";
 import {CallHierarchyIncomingCall, SemanticTokensBuilder} from "vscode";
 import {tokenizerConf} from "./languages/csharp";
-import { createTokenizer, Token, Tokenizer, TokenizerConf, TOKEN_COMMENT, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING } from "./tokenizer";
+import { createTokenizer, Token, Tokenizer, TokenizerConfig, TOKEN_COMMENT, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING } from "./tokenizer";
 import {combineTokenValues, getCodeBlockAt, getExpressionAt} from './util';
 
 /**
@@ -244,7 +244,7 @@ export const common = {
  * @param tokenConf The TokenizerConf which is used to tokenize the input string for parsing.
  * @returns A Parser function
  */
-export function createParser(sequence: ParseSequence, tokenConf: TokenizerConf): Parser {
+export function createParser(sequence: ParseSequence, tokenConf: TokenizerConfig): Parser {
 
     const tokenize: Tokenizer = createTokenizer(tokenConf);
 

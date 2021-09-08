@@ -25,7 +25,7 @@ export type Token = {
 /**
  * The syntax configuration that can be specified for each language.
  */
-export type TokenizerConf = {
+export type TokenizerConfig = {
 	PUNCTUATION: string;
 	IDENTIFIER_START: string;
     IDENTIFIER: string;
@@ -48,53 +48,53 @@ export type Tokenizer = (input: string) => Token[];
 /**
  * Create and return a tokenizer function according to the given syntax configuration.
  * 
- * @param conf The syntax configuration for this tokenizer
+ * @param config The syntax configuration for this tokenizer
  * @returns The tokenizer function
  */
-export function createTokenizer(conf: TokenizerConf): Tokenizer {
+export function createTokenizer(config: TokenizerConfig): Tokenizer {
 
     let i = 0; // Internal caret that is moved forward
 
     // Conditionals
 
     function isWhitespace(char: string) {
-        return conf.WHITESPACE.includes(char);
+        return config.WHITESPACE.includes(char);
     }
 
     function isDigit(char: string) {
-        return conf.DIGIT.includes(char)
+        return config.DIGIT.includes(char)
     }
 
     function isPunctuation(char: string) {
-        return conf.PUNCTUATION.includes(char)
+        return config.PUNCTUATION.includes(char)
     }
 
     function isSingleLineComment(input: string) {
-        return input.startsWith(conf.SINGLE_LINE_COMMENT, i);
+        return input.startsWith(config.SINGLE_LINE_COMMENT, i);
     }
 
     function isMultiLineComment(input: string) {
-        return input.startsWith(conf.MULTI_LINE_COMMENT_START, i);
+        return input.startsWith(config.MULTI_LINE_COMMENT_START, i);
     }
 
     function isOperator(char: string) {
-        return conf.OPERATOR.includes(char)
+        return config.OPERATOR.includes(char)
     }
 
     function isStringDelim(char: string) {
-        return conf.STRING_DELIM.includes(char)
+        return config.STRING_DELIM.includes(char)
     }
 
     function isIdentifierStart(char: string) {
-        return conf.IDENTIFIER_START.includes(char)
+        return config.IDENTIFIER_START.includes(char)
     }
 
     function isIdentifier(char: string) {
-        return conf.IDENTIFIER.includes(char)
+        return config.IDENTIFIER.includes(char)
     }
 
     function isKeyword(str: string) {
-        return conf.KEYWORD.includes(str)
+        return config.KEYWORD.includes(str)
     }
 
     // Read funcions
@@ -209,7 +209,7 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
      * @returns A comment Token
      */
     function readSingleLineComment(input: string): Token {
-        const str = input.substr(i + conf.SINGLE_LINE_COMMENT.length);
+        const str = input.substr(i + config.SINGLE_LINE_COMMENT.length);
         i = input.length
         return { type: TOKEN_COMMENT, value: str }
     }
@@ -220,9 +220,9 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
      * @returns A comment Token
      */
     function readMultiLineComment(input: string): Token {
-        i += conf.MULTI_LINE_COMMENT_START.length;
-        const str = readUntil(input, conf.MULTI_LINE_COMMENT_END, false);
-        i += conf.MULTI_LINE_COMMENT_END.length;
+        i += config.MULTI_LINE_COMMENT_START.length;
+        const str = readUntil(input, config.MULTI_LINE_COMMENT_END, false);
+        i += config.MULTI_LINE_COMMENT_END.length;
         return { type: TOKEN_COMMENT, value: str }
     }
 
