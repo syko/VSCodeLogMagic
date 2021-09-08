@@ -38,12 +38,11 @@ export type Tokenizer = (input: string) => Token[];
 
 export function createTokenizer(conf: TokenizerConf): Tokenizer {
 
-    function readWhile(input: string, start: number, conditionFn: (char: string) => boolean) {
+    let i = 0; // Internal caret that is moved forward
+
+    function readWhile(input: string, conditionFn: (char: string) => boolean) {
         let chars = []
-        for (let i = start; i < input.length; i++) {
-            if (conditionFn(input[i])) chars.push(input[i]);
-            else break;
-        }
+        while (conditionFn(input[i])) chars.push(input[i++]);
         return chars.join('');
     }
 
@@ -61,12 +60,12 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
         return conf.PUNCTUATION.includes(char)
     }
 
-    function isSingleLineComment(input: string, start: number) {
-        return input.startsWith(conf.SINGLE_LINE_COMMENT, start);
+    function isSingleLineComment(input: string) {
+        return input.startsWith(conf.SINGLE_LINE_COMMENT, i);
     }
 
-    function isMultiLineComment(input: string, start: number) {
-        return input.startsWith(conf.MULTI_LINE_COMMENT_START, start);
+    function isMultiLineComment(input: string) {
+        return input.startsWith(conf.MULTI_LINE_COMMENT_START, i);
     }
 
     function isOperator(char: string) {
@@ -91,118 +90,106 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
 
     // Read funcions
 
-    function readUntil(input: string, start: number, endDelim: string, canEscape: boolean = true): string {
+    function readUntil(input: string, endDelim: string, canEscape: boolean = true): string {
         let str = ''
         let escaped = false
-        for (let i = start; i < input.length; i++) {
+        while(i < input.length) {
             if (escaped) {
                 escaped = false;
             } else if (canEscape && input[i] === "\\") {
                 escaped = true;
-                continue;
             } else if (input.startsWith(endDelim, i)) {
                 break;
             }
-            str += input[i]
+            str += input[i];
+            i++;
         }
         return str;
     }
 
-    function skipWhitespace(input: string, start: number):number {
-        return readWhile(input, start, isWhitespace).length;
+    function skipWhitespace(input: string):number {
+        return readWhile(input, isWhitespace).length;
     }
 
-    // function skipComment(input: string, start: number):number {
-    //     if (isSingleLineComment(input, start)) return input.length - start;
-    //     if (isMultiLineComment(input, start)) return ("" + readUntil(input, start, conf.MULTI_LINE_COMMENT_END, false).value).length + conf.MULTI_LINE_COMMENT_END.length;
-    //     return 0;
-    // }
-
-    function readNumber(input: string, start: number): Token {
-        const str = readWhile(input, start, (char: string) => {
+    function readNumber(input: string): Token {
+        const str = readWhile(input, (char: string) => {
             let seenDot = false;
             return isDigit(char) || (!seenDot && char === '.' && (seenDot = true));
         })
         return { type: TOKEN_NUMBER, value: parseFloat(str) }
     }
 
-    function readOperator(input: string, start: number): Token {
-        return { type: TOKEN_OPERATOR, value: readWhile(input, start, isOperator) }
+    function readOperator(input: string): Token {
+        return { type: TOKEN_OPERATOR, value: readWhile(input, isOperator) }
     }
 
-    function readPunctuation(input: string, start: number): Token {
-        return { type: TOKEN_PUNCTUATION, value: input[start] }
+    function readPunctuation(input: string): Token {
+        return { type: TOKEN_PUNCTUATION, value: input[i++] }
     }
 
-    function readIdentifier(input: string, start: number): Token {
-        const str = readWhile(input, start, isIdentifier);
+    function readIdentifier(input: string): Token {
+        const str = readWhile(input, isIdentifier);
         return { type: isKeyword(str) ? TOKEN_KEYWORD: TOKEN_IDENTIFIER, value: str }
     }
 
-    function readString(input: string, start: number, quoteChar: string): Token {
-        return { type: TOKEN_STRING, value: readUntil(input, start + 1, quoteChar) }
+    function readString(input: string, quoteChar: string): Token {
+        i += quoteChar.length;
+        const str = readUntil(input, quoteChar);
+        i += quoteChar.length;
+        return { type: TOKEN_STRING, value: str }
     }
 
-    function readSingleLineComment(input: string, start: number): Token {
-        return { type: TOKEN_COMMENT, value: input.substr(start + conf.SINGLE_LINE_COMMENT.length) }
+    function readSingleLineComment(input: string): Token {
+        const str = input.substr(i + conf.SINGLE_LINE_COMMENT.length);
+        i = input.length
+        return { type: TOKEN_COMMENT, value: str }
     }
 
-    function readMultiLineComment(input: string, start: number): Token {
-        return { type: TOKEN_COMMENT, value: readUntil(input, start + conf.MULTI_LINE_COMMENT_START.length, conf.MULTI_LINE_COMMENT_END, false) }
+    function readMultiLineComment(input: string): Token {
+        i += conf.MULTI_LINE_COMMENT_START.length;
+        const str = readUntil(input, conf.MULTI_LINE_COMMENT_END, false);
+        i += conf.MULTI_LINE_COMMENT_END.length;
+        return { type: TOKEN_COMMENT, value: str }
     }
 
     // Main
 
     function tokenize(input: string): Token[] {
         const tokens: Token[] = [];
-        let i = 0
         let j = 0
-        console.log(i)
         while(i < input.length && j < 999) {
-            i += skipWhitespace(input, i);
-            // let skipped = 0
-            // do {
-            //     skipped = skipWhitespace(input, i);
-            //     skipped += skipComment(input, i)
-            //     i += skipped;
-            // } while (j < input.length && skipped > 0);
-
+            skipWhitespace(input);
             if (i >= input.length || j >= 999) break;
 
             const c = input[i]
             let token;
 
             switch (true) {
-                case isSingleLineComment(input, i):
-                    token = readSingleLineComment(input, i);
-                    i += conf.SINGLE_LINE_COMMENT.length // Skip string delimeter
+                case isSingleLineComment(input):
+                    token = readSingleLineComment(input);
                     break;
-                case isMultiLineComment(input, i):
-                    token = readMultiLineComment(input, i);
-                    i += conf.MULTI_LINE_COMMENT_START.length + conf.MULTI_LINE_COMMENT_END.length // Skip string delimeter
+                case isMultiLineComment(input):
+                    token = readMultiLineComment(input);
                     break;
                 case isDigit(c):
-                    token = readNumber(input, i);
+                    token = readNumber(input);
                     break;
                 case isOperator(c):
-                    token = readOperator(input, i);
+                    token = readOperator(input);
                     break;
                 case isPunctuation(c):
-                    token = readPunctuation(input, i);
+                    token = readPunctuation(input);
                     break;
                 case isStringDelim(c):
-                    token = readString(input, i, c);
-                    i += c.length // Skip string delimeter
+                    token = readString(input, c);
                     break;
                 case isIdentifierStart(c):
-                    token = readIdentifier(input, i);
+                    token = readIdentifier(input);
                     break;
                 default:
-                    const e = new Error(`LogMagic failed to parse next token "${input.substring(i, 16)}..."`);
-                    console.error(e);
+                    const e = new Error(`LogMagic: Tokenizer failed to parse next token "${input.substring(i, 16)}..."`);
                     throw e;
             }
-            i += ("" + token.value).length;
             j++;
             tokens.push(token);
         }
