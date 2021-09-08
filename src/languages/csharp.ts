@@ -40,7 +40,7 @@ const tokenizerConf: TokenizerConf = {
 // --- If "...)...": look for matching "(" and combine all lines to one (removing comments before) - DOWN U
 // + foo.bar.buz => one identifier - UPDOWN U
 // + Combine else if
-// Combine array syntax
+// + Combine array syntax
 // + Detect & remove types - UPDOWN C# vs TS vs JS Obj Notation
 // + Detect & remove complete lambdas - UPDOWN U  
 // + Remove function names
