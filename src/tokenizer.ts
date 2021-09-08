@@ -126,11 +126,13 @@ export function createTokenizer(conf: TokenizerConf): Tokenizer {
         let escaped = false
         while(i < input.length) {
             if (escaped) {
-                escaped = false;
+                escaped = false; // Unset escaped and consume the character
             } else if (canEscape && input[i] === "\\") {
-                escaped = true;
+                escaped = true; // Set flag and skip over the escape character
+                i++;
+                continue;
             } else if (input.startsWith(endDelim, i)) {
-                break;
+                break; // End reading
             }
             str += input[i];
             i++;

@@ -99,7 +99,7 @@ export const getExpressionAt = (tokens: Token[], startIndex: number, direction: 
  * @returns The quoted string
  */
 export const quoteString = (str: string, quoteChar: string = '"'): string => {
-	return `${quoteChar}${str.replace('${quoteChar}', '\\${quoteChar}')}${quoteChar}`
+	return `${quoteChar}${str.replace(`${quoteChar}`, `\\${quoteChar}`)}${quoteChar}`
 }
 
 /**
