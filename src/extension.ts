@@ -1,31 +1,43 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import {type} from 'os';
-import {stringify} from 'querystring';
 import * as vscode from 'vscode';
-import {InputType} from 'zlib';
+import {createLogger, createLogRotator, Logger, LogRotator} from './logger';
 import {Parser, createParser} from './parser'
+import {createTokenizer, Tokenizer} from './tokenizer';
 
-type ParserList = {
-	[index: string]: Parser;
+type MagicItem = {
+	tokenize: Tokenizer;
+	parse: Parser;
+	log: Logger;
+	rotateLog: LogRotator;
+}
+
+type MagicItems = {
+	[index: string]: MagicItem;
 }
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	
-	const parsers: ParserList = {}
+	const magicItems: MagicItems = {}
 
-	async function getParser(language: string): Promise<Parser> {
-		if (!parsers[language]) {
+	async function getMagicItem(language: string): Promise<MagicItem> {
+		if (!magicItems[language]) {
 			try {
-				const { parseSequence, tokenizerConf } = await import('./languages/csharp');
-				parsers[language] = createParser(parseSequence, tokenizerConf);
+				const { parseSequence, tokenizerConfig, loggerConfig } = await import('./languages/csharp');
+				// setUserSettings(loggerConfig, getVSCodeSettings(language));
+				magicItems[language] = <MagicItem>{
+					tokenize: createTokenizer(tokenizerConfig),
+					parse: createParser(parseSequence),
+					log: createLogger(loggerConfig),
+					rotateLog: createLogRotator(loggerConfig)
+				};
 			} catch (e) {
-				return getParser('csharp'); // Return default parser if no specific implementation for this language exists
+				return getMagicItem('csharp'); // Return default parser if no specific implementation for this language exists
 			}
 		}
-		return parsers[language];
+		return magicItems[language];
 	}
 
 	// The command has been defined in the package.json file
@@ -38,9 +50,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// if (!editor) return;
 		// const {text} = editor.document.lineAt(editor.selection.active.line);
 		// javascript, typescript, csharp
-		const parse = await getParser(vscode.window.activeTextEditor?.document.languageId || 'javascript');
+		const magic = await getMagicItem(vscode.window.activeTextEditor?.document.languageId || 'javascript');
 		try {
-			console.log("Result", parse(`if(someVar[123] == 123) { foo(someVar["fo\\"o", "bar"])}`));
+			console.log("Result", magic.log(magic.parse(magic.tokenize(`var foo = 123 + bar;`))));
+			console.log("Rot", magic.rotateLog(magic.rotateLog('Console.WriteLine("foo:" + foo + "bar:" + bar);') || ''));
 		} catch (e) {
 			console.error(e);
 		}

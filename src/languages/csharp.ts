@@ -1,13 +1,14 @@
 import {removeListener} from "process";
+import {LoggerConfig} from "../logger";
 import {ParseResult, ParseSequence, ParseStep, common} from "../parser";
-import { Token, TokenizerConf, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION } from "../tokenizer";
+import { Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION } from "../tokenizer";
 import {getCodeBlockAt} from "../util";
 
 const LOG_ID_KEYWORDS = ['if', 'return', 'else if', 'else', 'switch', 'case'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
 const IDENTIFIER_CHAIN_CHARS = ['.']
 
-const tokenizerConf: TokenizerConf = {
+const tokenizerConfig: TokenizerConfig = {
     PUNCTUATION: ',.;\\[]{}@#$()~',
     IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
     IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
@@ -87,4 +88,13 @@ const parseSequence: ParseSequence = [
     common.removeNonIdentifiers
 ];
 
-export {tokenizerConf, parseSequence};
+const loggerConfig: LoggerConfig = <LoggerConfig>{
+	logPrefixes: ['Console.WriteLine('],
+	parameterSeparator: ' + ',
+	identifierPrefix: '',
+	identifierSuffix: '',
+	logSuffixes: [');'],
+	quoteCharacter: '"'
+};
+
+export {tokenizerConfig, parseSequence, loggerConfig};

@@ -1,12 +1,5 @@
-import {opendir} from "fs";
-import {start} from "repl";
-import {CallHierarchyIncomingCall, SemanticTokensBuilder} from "vscode";
-import {tokenizerConf} from "./languages/csharp";
 import {
-	createTokenizer,
 	Token,
-	Tokenizer,
-	TokenizerConfig,
 	TOKEN_COMMENT,
 	TOKEN_IDENTIFIER,
 	TOKEN_KEYWORD,
@@ -42,9 +35,9 @@ export type ParseStepFactory = () => ParseStep;
 export type ParseSequence = ParseStep[];
 
 /**
- * A function that takes an input string, tokenizes it and executes all the given parse steps in sequence.
+ * A function that takes an array of Token objects and executes all the given parse steps on it in sequence.
  */
-export type Parser = (input: string) => ParseResult;
+export type Parser = (tokens: Token[]) => ParseResult;
 
 /**
  * Common parse functions for use in various ParseSequences. These are useful for many languages.
@@ -253,15 +246,12 @@ export const common = {
 /**
  * A function that creates a Parser using the given sequence and tokenizer configuration.
  * @param sequence The sequence which is used to parse the input string.
- * @param tokenConf The TokenizerConf which is used to tokenize the input string for parsing.
  * @returns A Parser function
  */
-export function createParser(sequence: ParseSequence, tokenConf: TokenizerConfig): Parser {
+export function createParser(sequence: ParseSequence): Parser {
 
-    const tokenize: Tokenizer = createTokenizer(tokenConf);
-
-	function parse(input: string) {
-        const result: ParseResult = { logId: '', tokens: tokenize(input) };
+	function parse(tokens: Token[]) {
+        const result: ParseResult = { logId: '', tokens: tokens };
 		sequence.forEach((fn: ParseStep) => fn(result));
         return result;
 
