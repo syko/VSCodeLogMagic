@@ -5,6 +5,9 @@ import {createLogger, createLogRotator, Logger, LogRotator} from './logger';
 import {Parser, createParser} from './parser'
 import {createTokenizer, Tokenizer} from './tokenizer';
 
+/**
+ * A magical item allowing us to output a log statement with a single keypress.
+ */
 type MagicItem = {
 	tokenize: Tokenizer;
 	parse: Parser;
@@ -12,6 +15,9 @@ type MagicItem = {
 	rotateLog: LogRotator;
 }
 
+/**
+ * A mapping between language ids and their corresponding magical items.
+ */
 type MagicItems = {
 	[index: string]: MagicItem;
 }
@@ -22,6 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	const magicItems: MagicItems = {}
 
+	/**
+	 * Imports the components, creates and caches the magic for a given language.
+	 * @param language The language id
+	 * @returns The MagicItem for the language
+	 */
 	async function getMagicItem(language: string): Promise<MagicItem> {
 		if (!magicItems[language]) {
 			try {
