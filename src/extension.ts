@@ -1,9 +1,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import {createLogger, createLogRotator, Logger, LogRotator} from './logger';
-import {Parser, createParser} from './parser'
 import {createTokenizer, Tokenizer} from './tokenizer';
+import {Parser, createParser} from './parser'
+import {createLogger, Logger} from './logger';
+import {createLogRotator, LogRotator} from './logRotator';
 
 /**
  * A magical item allowing us to output a log statement with a single keypress.
@@ -41,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 				magicItems[language] = <MagicItem>{
 					tokenize: createTokenizer(tokenizerConfig),
 					parse: createParser(parseSequence),
-					log: createLogger(loggerConfig),
+					log: createLogger(loggerConfig[0]),
 					rotateLog: createLogRotator(loggerConfig)
 				};
 			} catch (e) {
@@ -61,10 +62,11 @@ export function activate(context: vscode.ExtensionContext) {
 		// if (!editor) return;
 		// const {text} = editor.document.lineAt(editor.selection.active.line);
 		// javascript, typescript, csharp
+		// CHECK EVERYTHING THAT ACCESSES tokens[i + 1] !!!!!!!!!!!!!!
 		const magic = await getMagicItem(vscode.window.activeTextEditor?.document.languageId || 'javascript');
 		try {
-			console.log("Result", magic.log(magic.parse(magic.tokenize(`var foo = 123 + bar;`))));
-			console.log("Rot", magic.rotateLog(magic.rotateLog('Console.WriteLine("foo:" + foo + "bar:" + bar);') || ''));
+			// console.log("Result", magic.log(magic.parse(magic.tokenize(`var foo = 123 + bar;`))));
+			console.log("Rot", magic.rotateLog(magic.tokenize('Console.WriteLine("if:" + (someCall(a, b) + 123) + "foo:" + foo + "bar:" + [1,2,3]);') || ''));
 		} catch (e) {
 			console.error(e);
 		}

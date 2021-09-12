@@ -1,5 +1,18 @@
-import {Token, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
-import {ParseResult, ParseStep} from "./parser";
+import {Token, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
+
+const PARENS: string = '{[(<>)]}';
+
+function isPuncOrOp (t: Token): boolean {
+	return t.type == TOKEN_PUNCTUATION || t.type == TOKEN_OPERATOR;
+}
+
+function isSameParen (t: Token, initialParen: string): boolean {
+	return isPuncOrOp(t) && t.value === initialParen;
+}
+
+function isOppositeParen (t: Token, initialParen: string): boolean {
+	return isPuncOrOp(t) && t.value === PARENS[PARENS.length - 1 - PARENS.indexOf(initialParen)];
+}
 
 /**
  * Return a code block (a section of code wrapped in (), [], {} or <>) start starts or ends at startIndex.
@@ -10,37 +23,28 @@ import {ParseResult, ParseStep} from "./parser";
  * @param direction The direction in which to look for the code block starting from startIndex. -1 or 1.
  * @returns Array of tokens that form the code block, including the wrapping characters.
  */
-export const getCodeBlockAt = (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] => {
-	const P: string = '{[(<>)]}';
+export function getCodeBlockAt (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] {
 	const initialParen: string = '' + tokens[startIndex].value;
 	const includedTokens: Token[] = [tokens[startIndex]];
 	let depth = 0;
 
-	const isPuncOrOp = (t: Token): boolean => {
-		return t.type == TOKEN_PUNCTUATION || t.type == TOKEN_OPERATOR;
-	}
-
-	const isSameParen = (t: Token): boolean => {
-		return isPuncOrOp(t) && t.value === initialParen;
-	}
-
-	const isOppositeParen = (t: Token): boolean => {
-		return isPuncOrOp(t) && t.value === P[P.length - 1 - P.indexOf(initialParen)];
-	}
-
-	if (!isPuncOrOp(tokens[startIndex]) || !P.includes(initialParen)) {
-		throw new Error(`getCodeBlockAt requires one of ${P} to be at startIndex position`);
+	if (!isPuncOrOp(tokens[startIndex]) || !PARENS.includes(initialParen)) {
+		return [];
 	}
 
 	for (let i = startIndex + direction; i > 0 && i < tokens.length; i += direction) {
 		includedTokens.push(tokens[i]);
-		if (isSameParen(tokens[i])) depth++;
-		else if (isOppositeParen(tokens[i])) depth--;
+		if (isSameParen(tokens[i], initialParen)) depth++;
+		else if (isOppositeParen(tokens[i], initialParen)) depth--;
 		if (depth === -1) break;
 	}
 
 	return includedTokens;
 };
+
+export function isCompleteCodeBlock (tokens: Token[]): boolean {
+	return tokens.length > 0 && isPuncOrOp(tokens[0]) && isOppositeParen(tokens[tokens.length - 1], '' + tokens[0].value);
+}
 
 /**
  * Return an expression start starts or ends at startIndex. An expression is considered anything that starts
@@ -52,7 +56,7 @@ export const getCodeBlockAt = (tokens: Token[], startIndex: number, direction: -
  * @param direction The direction in which to look for the expression starting from startIndex. -1 or 1.
  * @returns Array of tokens that form the expression, including the wrapping characters.
  */
-export const getExpressionAt = (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] => {
+export function getExpressionAt (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] {
 	const P: string = '{[()]}';
 	const openingP: string = '{[(';
 	const closingP: string = ')]}';
@@ -98,9 +102,19 @@ export const getExpressionAt = (tokens: Token[], startIndex: number, direction: 
  * @param str The string to wrap in quotation marks
  * @returns The quoted string
  */
-export const quoteString = (str: string, quoteChar: string = '"'): string => {
+export function quoteString (str: string, quoteChar: string = '"'): string {
 	return `${quoteChar}${str.replace(`${quoteChar}`, `\\${quoteChar}`)}${quoteChar}`
-}
+};
+
+/**
+ * Serializes the token for output. Wraps string tokens in quotation marks.
+ *
+ * @param token The token to serialize
+ * @returns Serialized token value
+ */
+export function serializeToken (token: Token, quoteChar: string = '"'): string {
+	return token.type === TOKEN_STRING ? quoteString('' + token.value, quoteChar) : '' + token.value;
+};
 
 /**
  * Return a concatenated token value of the given array of tokens. Quotes string values as necessary.
@@ -108,6 +122,28 @@ export const quoteString = (str: string, quoteChar: string = '"'): string => {
  * @param tokens The tokens whose values to combine
  * @returns A string of concatenated token values
  */
-export const combineTokenValues = (tokens: Token[]): string => {
-	return tokens.reduce((acc: string, t: Token) => acc + (t.type === TOKEN_STRING ? quoteString('' + t.value) : t.value), '');
+export function serializeTokens (tokens: Token[]): string {
+	return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t), '');
 };
+
+/**
+ * A function that appends a colon to the value of the token.
+ * @param token The Token to append the colon to
+ * @returns The same Token
+ */
+export function appendColon(token: Token): Token {
+	if (token.type === TOKEN_STRING) token.value = token.value + ':';
+	return token;
+}
+
+/**
+ * A function that removes a colon from the end of the value of the token if there is one.
+ * @param token The Token to remove the colon from
+ * @returns The same Token
+ */
+export function popColon(token: Token): Token {
+	if (token.type !== TOKEN_STRING) return token;
+	const v = '' + token.value
+	if (v[v.length - 1] === ':') token.value = v.substr(0, v.length - 1);
+	return token;
+}

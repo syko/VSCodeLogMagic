@@ -5,6 +5,7 @@ export const TOKEN_KEYWORD = 'keyword';
 export const TOKEN_PUNCTUATION = 'punctuation';
 export const TOKEN_OPERATOR = 'operator'
 export const TOKEN_COMMENT = 'comment'
+export const TOKEN_WHITESPACE = 'whitespace'
 
 export type TokenType = typeof TOKEN_NUMBER
     | typeof TOKEN_STRING
@@ -12,7 +13,8 @@ export type TokenType = typeof TOKEN_NUMBER
     | typeof TOKEN_KEYWORD
     | typeof TOKEN_PUNCTUATION
     | typeof TOKEN_OPERATOR
-    | typeof TOKEN_COMMENT;
+    | typeof TOKEN_COMMENT
+    | typeof TOKEN_WHITESPACE;
 
 /**
  * A Token represents an individual piece of code, like a string, number, punctuation character, variable (identifier), etc...
@@ -33,7 +35,6 @@ export type TokenizerConfig = {
     DIGIT: string;
     OPERATOR: string;
     STRING_DELIM: string;
-    WHITESPACE: string;
     SINGLE_LINE_COMMENT: string;
     MULTI_LINE_COMMENT_START: string;
     MULTI_LINE_COMMENT_END: string;
@@ -58,7 +59,7 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
     // Conditionals
 
     function isWhitespace(char: string) {
-        return config.WHITESPACE.includes(char);
+        return /\s/.test(char);
     }
 
     function isDigit(char: string) {
@@ -141,11 +142,12 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
     }
 
     /**
-     * Read the input string and move the internal caret forward until something non-whitespace is encountered.
+     * Read whitespace at the current caret position in the input string and move the internal caret forward.
      * @param input The string to read
+     * @returns A whitespace Token
      */
-    function skipWhitespace(input: string): void {
-        readWhile(input, isWhitespace);
+    function readWhitespace(input: string): Token {
+        return { type: TOKEN_WHITESPACE, value: readWhile(input, isWhitespace) }
     }
 
     /**
@@ -239,13 +241,12 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
         const tokens: Token[] = [];
         let j = 0
         while(i < input.length && j < 999) {
-            skipWhitespace(input);
-            if (i >= input.length || j >= 999) break;
-
             const c = input[i]
             let token;
-
             switch (true) {
+                case isWhitespace(c):
+                    token = readWhitespace(input);
+                    break;
                 case isSingleLineComment(input):
                     token = readSingleLineComment(input);
                     break;

@@ -1,3 +1,4 @@
+import {LogFormat} from "./logger";
 import {
 	Token,
 	TOKEN_COMMENT,
@@ -6,27 +7,43 @@ import {
 	TOKEN_NUMBER,
 	TOKEN_OPERATOR,
 	TOKEN_PUNCTUATION,
-	TOKEN_STRING
+	TOKEN_STRING,
+	TOKEN_WHITESPACE
 } from "./tokenizer";
-import {combineTokenValues, getCodeBlockAt, getExpressionAt} from './util';
+import {serializeTokens, getCodeBlockAt, getExpressionAt, isCompleteCodeBlock} from './util';
 
 /**
  * A parse result is an objecting containing all the current parsed info at any point in the parse process.
+ *
+ * tokens: The current Token objects. The Tokenizer creates the initial array of tokens and parse steps
+ *         normally remove tokens until there are only interesting ones left.
+ * logItems: An array of arrays of Tokens. Each subarray is one "log item". When logging a random line of code
+ *           each individual token left after parsing is its own "log item" (converted to a single-item array).
+ *           The Log Rotator, however, tries to preserve multi-token log items and makes use of this.
+ *           A "key:" is generated in front of each log item when generating the log line.
+ * logId: A string token representing the "identifier" for the log statement. The logId is the first thing that
+ *        is logged and a key is not generated for it. Usually a keyword or the name of the first identifier.
+ * logFormat: When the ParseResult is given to a Logger function, it will use this LogFormat unless one is
+              specified directly.
  */
+;
 export type ParseResult = {
-	logId: string;
 	tokens: Token[];
+	logItems: Token[][];
+	logId?: Token;
+	logFormat?: LogFormat;
 };
 
 /**
  * A function that takes a ParseResult and modifies it in place to achieve a slightly more parsed result.
  */
 export type ParseStep = (result: ParseResult) => void;
+// export interface ParseStep {(result: ParseResult): void};
 
 /**
  * A function that returns a ParseStep.
  */
-export type ParseStepFactory = () => ParseStep;
+export type ParseStepFactory = (...parameters: any) => ParseStep;
 
 /**
  * An array of ParseStep functions. The ParseStep functions are executed in sequence on the same ParseResult.
@@ -40,17 +57,15 @@ export type ParseSequence = ParseStep[];
 export type Parser = (tokens: Token[]) => ParseResult;
 
 /**
+ * A Custom Error class for cathcing parse errors.
+ */
+export class ParseError extends Error {
+}
+
+/**
  * Common parse functions for use in various ParseSequences. These are useful for many languages.
  */
 export const common = {
-
-	/**
-	 * Remove all comments from the ParseResult.
-	 * @param result The result to parse and modify in place.
-	 */
-	removeComments: <ParseStep>(result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t) => t.type !== TOKEN_COMMENT);
-	},
 
 	/**
 	 * Return a ParseStep function taht combines chained identifiers into one (eg. somePackage.someNamespace.someVariable)
@@ -58,7 +73,7 @@ export const common = {
 	 * @param chainingCharacters An array of characters that can chain identifiers together (probably ['.'] in most cases)
 	 * @returns A ParseStep function
 	 */
-	getCombineIdentifierChainsFn: <ParseStepFactory>(chainingCharacters: string[]) => {
+	getCombineIdentifierChainsFn: (chainingCharacters: string[]): ParseStep => {
 		return <ParseStep>(result: ParseResult): void => {
 			const tokens = result.tokens;
 			const newTokens: Token[] = [];
@@ -81,7 +96,7 @@ export const common = {
 						else break;
 					}
 					if (isChainLink[1](chain[chain.length - 1])) chain.pop(); // Identifier can't end with a dot
-					newTokens.push({type: TOKEN_IDENTIFIER, value: combineTokenValues(chain)});
+					newTokens.push({type: TOKEN_IDENTIFIER, value: serializeTokens(chain)});
 					i += chain.length - 1;
 				} else {
 					newTokens.push(token);
@@ -99,7 +114,7 @@ export const common = {
 	 * 
 	 * @param result The result to parse and modify in place.
 	 */
-	combineBracketNotation: <ParseStep>(result: ParseResult): void => {
+	combineBracketNotation: (result: ParseResult): void => {
 		const tokens = result.tokens;
 		for (let i = 0; i < tokens.length - 3; i++) {
 			const token: Token = tokens[i];
@@ -108,8 +123,8 @@ export const common = {
 			if (tokens[i + 1].type !== TOKEN_PUNCTUATION || tokens[i + 1].value !== '[') continue;
 			const block: Token[] = getCodeBlockAt(tokens, i + 1);
 			// If code block does not end with ']', it's an incomplete block => ignore
-			if (block[block.length - 1].type !== TOKEN_PUNCTUATION || block[block.length - 1].value !== ']') continue;
-			token.value += combineTokenValues(block);
+			if (!isCompleteCodeBlock(block)) continue;
+			token.value += serializeTokens(block);
 			// Remove the [...] part unless there's an identifier in there
 			if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) tokens.splice(i + 1, block.length);
 		}
@@ -124,7 +139,7 @@ export const common = {
      *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeLambdas: <ParseStep>(result: ParseResult): void => {
+	removeLambdas: (result: ParseResult): void => {
 		// Remove complete lambdas that may have a defined parameter list
 		const tokens = result.tokens;
 		let skippedLambdaIndex = 0;
@@ -164,7 +179,7 @@ export const common = {
 	 * Remove all function names from function calls (eg. 'doSomething(p1)' becomes '(p1)').
 	 * @param result The result to parse and modify in place.
 	 */
-	removeFunctionNames: <ParseStep>(result: ParseResult): void => {
+	removeFunctionNames: (result: ParseResult): void => {
 		const isParen = (t?: Token) => !!t && t.type == TOKEN_PUNCTUATION && t.value === '(';
 		result.tokens = result.tokens.filter((t: Token, i: number) => t.type !== TOKEN_IDENTIFIER || !isParen(result.tokens[i + 1]));
 	},
@@ -173,7 +188,7 @@ export const common = {
 	 * Remove all strings and numbers from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removeLiterals: <ParseStep>(result: ParseResult): void => {
+	removeLiterals: (result: ParseResult): void => {
 		result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_STRING && t.type !== TOKEN_NUMBER);
 	},
 
@@ -181,7 +196,7 @@ export const common = {
 	 * Remove all punctuation from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removePunctuation: <ParseStep>(result: ParseResult): void => {
+	removePunctuation: (result: ParseResult): void => {
 		result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_PUNCTUATION);
 	},
 
@@ -189,8 +204,24 @@ export const common = {
 	 * Remove all operators from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removeOperators: <ParseStep>(result: ParseResult): void => {
+	removeOperators: (result: ParseResult): void => {
 		result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_OPERATOR);
+	},
+
+	/**
+	 * Remove all comments from the ParseResult.
+	 * @param result The result to parse and modify in place.
+	 */
+	removeComments: (result: ParseResult): void => {
+		result.tokens = result.tokens.filter((t) => t.type !== TOKEN_COMMENT);
+	},
+
+	/**
+	 * Remove all comments from the ParseResult.
+	 * @param result The result to parse and modify in place.
+	 */
+	removeWhitespace: (result: ParseResult): void => {
+		result.tokens = result.tokens.filter((t) => t.type !== TOKEN_WHITESPACE);
 	},
 
 	/**
@@ -199,7 +230,7 @@ export const common = {
 	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeNonIdentifiers: <ParseStep>(result: ParseResult): void => {
+	removeNonIdentifiers: (result: ParseResult): void => {
 		result.tokens = result.tokens.filter((t: Token) => t.type === TOKEN_IDENTIFIER);
 	},
 
@@ -210,8 +241,8 @@ export const common = {
 	 * @param keywords An array of keywords to combine. Each keyword is a sub-array with individual words as separate items.
 	 * @returns A ParseStep function for combining multi-word keywords.
 	 */
-	getCombineCommonMultiWordKeywordsFn: <ParseStepFactory> (keywords: string[][]) => {
-		return <ParseStep>(result: ParseResult): void => {
+	getCombineCommonMultiWordKeywordsFn: <ParseStepFactory> (keywords: string[][]): ParseStep => {
+		return (result: ParseResult): void => {
 			const tokens = result.tokens;
 			for (let i = 0; i < tokens.length; i++) {
 				const foundKeyword: string[] | undefined = keywords.find((kw: string[]) => kw.every((w, j) => {
@@ -233,13 +264,23 @@ export const common = {
 	 * @param interestingKeywords An array of keywords to consider for the logId. All others are ignored.
 	 * @returns A ParseStep function for setting the logId property.
 	 */
-	getSetDefaultIdFn: <ParseStepFactory>(interestingKeywords: string[]) => {
+	getSetDefaultIdFn: (interestingKeywords: string[]): ParseStep => {
 		return <ParseStep>(result: ParseResult): void => {
 			// Either use first interesting keyword or first identifier
 			let t: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
 			if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
-			if (t) result.logId = '' + t.value;
+			if (t) result.logId = t;
 		}
+	},
+
+	/**
+	 * Take all the tokens in the ParseResult and store each one individually as an item to log.
+	 * You want to do this as the last parse step.
+	 *
+	 * @param result The result to parse and modify in place.
+	 */
+	storeTokensAsLogItems: (result: ParseResult): void => {
+		result.logItems = result.tokens.map((t: Token) => [t]);
 	}
 };
 
@@ -250,8 +291,8 @@ export const common = {
  */
 export function createParser(sequence: ParseSequence): Parser {
 
-	function parse(tokens: Token[]) {
-        const result: ParseResult = { logId: '', tokens: tokens };
+	const parse: Parser = (tokens: Token[]) => {
+        const result: ParseResult = { tokens: tokens, logItems: [] };
 		sequence.forEach((fn: ParseStep) => fn(result));
         return result;
 

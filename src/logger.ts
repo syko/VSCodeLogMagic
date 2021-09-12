@@ -1,46 +1,36 @@
-import {AsyncLocalStorage} from 'async_hooks';
-import {resourceLimits} from 'worker_threads';
 import {ParseResult} from './parser';
-import {Token} from './tokenizer';
-import {quoteString} from './util';
+import {Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD} from './tokenizer';
+import {appendColon, quoteString, serializeTokens} from './util';
 
 /**
- * The output configuration that can be specified for each language.
+ * One log statement format configuration for a given language.
  *
- * logPrefixes: An array of logging function calls such as ['console.log(', 'console.warn', ...]
+ * logPrefix: A function calls including the opening parenthesis, if any, such as 'console.log('
  * parameterSeparator: What separates logged items such as ', ' or ' + '
- * identifierPrefix: Option to prefix identifiers with something static like wrap it in a function (together with identifierSuffix)
+ * identifierPrefix: Option to prefix identifiers with something static like wrap it in a function call (together with identifierSuffix)
  * identifierSuffix: Option to suffix identifiers with something static like '.toString()'
- * logSuffixes: An array of logging function call ends. Usually just something like [');']. Does not have to match the length of logPrefixes.
+ * logSuffix: A function call end. Usually just something like [');'].
  * quoteCharacter: Which quote character to use when turning identifiers into strings.
  */
-export type LoggerConfig = {
-	logPrefixes: string[];
-	parameterSeparator: string,
+export type LogFormat = {
+	logPrefix: string;
+	parameterSeparator: string;
 	identifierPrefix: string;
 	identifierSuffix: string;
-	logSuffixes: string[];
+	logSuffix: string;
 	quoteCharacter: string;
 };
+
+/**
+ * A list of log formats that can be configured for each language. The first format is used for
+ * creating new log statements. All log statements can then be rotated to the next format in the list.
+ */
+export type LoggerConfig = LogFormat[];
 
 /**
  * A Logger is a function that takes a ParseResult object and returns a line of code for logging it.
  */
 export type Logger = (parseResult: ParseResult) => string;
-
-/**
- * A LogRotator is a function that takes an existing log statement, rotates the logPrefixes and logSuffixes and returns
- * a new log statement.
- *
- * For example, given the LoggerConfig of {logPrefixes: ['console.log(', 'console.warn('], logSuffixes: [');']} passing
- * the LogRotator a string 'console.log(something);' will return 'console.warn(something);'.
- *
- * Both logPrefixes and logSuffixes are rotated but if there are more prefixes than suffixes then the last suffix in the array
- * is used for prefixes that don't have a corresponding suffix in the array (see above example). 
- *
- * If the statement can't be rotated, null is returned.
- */
-export type LogRotator = (logStatement: string) => string | null;
 
 /**
  * A function for building the list of tokens for logging based on the given LoggerConfig.
@@ -49,40 +39,46 @@ export type LogRotator = (logStatement: string) => string | null;
  * already printed as the first item.
  *
  * @param parseResult The parse result to get tokens from
- * @param config the logger config to use for log syntax
+ * @param format the logger config to use for log syntax
  * @returns a string listing the parsed identifiers for logging according to the logger syntax
  */
-function listTokens(parseResult: ParseResult, config: LoggerConfig) {
-	return parseResult.tokens.map((t: Token) => {
-		return (t.value === parseResult.logId ? '' : quoteString(t.value + ':', config.quoteCharacter) + config.parameterSeparator) + config.identifierPrefix + t.value + config.identifierSuffix
-	}).join(config.parameterSeparator)
-}
-
-export function createLogger(config: LoggerConfig): Logger {
-	return <Logger> (parseResult: ParseResult) => {
-		return config.logPrefixes[0]
-			+ quoteString(parseResult.logId + ':', config.quoteCharacter)
-			+ config.parameterSeparator
-			+ listTokens(parseResult, config)
-			+ config.logSuffixes[0];
-	}
+function listLogItems(parseResult: ParseResult, format: LogFormat) {
+	return parseResult.logItems.map((logItem: Token[]) => {
+		const itemStr = serializeTokens(logItem); //TODO: SHORTEN KEY
+		const shouldLogItemKey = itemStr !== '' + parseResult.logId?.value
+			&& logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
+		return (shouldLogItemKey ? quoteString(itemStr + ':', format.quoteCharacter) + format.parameterSeparator : '')
+				+ format.identifierPrefix
+				+ itemStr
+				+ format.identifierSuffix
+	}).join(format.parameterSeparator)
 }
 
 /**
- * Create a LogRotator function according to the LoggerConfig.
+ * Take a final ParseResult object with logItems defined and return a log statement that matches
+ * the LogFormat that is either passed in or, if not, taken from the ParseResult object.
  *
- * @param config The logger config to use
- * @returns The LogRotator function for the config
+ * @param parseResult The parsed items to log
+ * @param format (optional) The format to log the items in. If omitted, the one on the parseResult is used.
+ * @returns A log statement
  */
-export function createLogRotator(config: LoggerConfig): LogRotator {
-	const rotatorFn:LogRotator = (logStatement: string): string | null => {
-		const prefixes = config.logPrefixes;
-		const suffixes = config.logSuffixes;
-		const prefixIndex: number = prefixes.findIndex((p: string) => logStatement.includes(p));
-		if (prefixIndex === -1) return null;
-		let newStatement: string = logStatement.replace(prefixes[prefixIndex], prefixes[(prefixIndex + 1) % prefixes.length]);
-		newStatement = newStatement.replace(suffixes[prefixIndex], suffixes[Math.min(suffixes.length - 1, (prefixIndex + 1) % prefixes.length)]);
-		return newStatement;
-	}
-	return rotatorFn;
+export function log(parseResult: ParseResult, format?: LogFormat) {
+	if(!format) format = parseResult.logFormat;
+	if (!format) throw new Error("LogMagic: log needs to be passed a LogFormat or have one on the ParseResult object");
+	if (parseResult.logId) appendColon(parseResult.logId);
+	return format.logPrefix
+		+ quoteString('' + parseResult.logId?.value, format.quoteCharacter)
+		+ format.parameterSeparator
+		+ listLogItems(parseResult, format)
+		+ format.logSuffix;
+}
+
+/**
+ * Create a log function bound to a specific LogFormat.
+ *
+ * @param format THe LogFormat to usee.
+ * @returns A bound log function
+ */
+export function createLogger(format: LogFormat): Logger {
+	return <Logger>(parseResult: ParseResult) => log(parseResult, format);
 }

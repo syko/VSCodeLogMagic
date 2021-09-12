@@ -1,7 +1,6 @@
-import {removeListener} from "process";
 import {LoggerConfig} from "../logger";
 import {ParseResult, ParseSequence, ParseStep, common} from "../parser";
-import { Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION } from "../tokenizer";
+import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION} from "../tokenizer";
 import {getCodeBlockAt} from "../util";
 
 const LOG_ID_KEYWORDS = ['if', 'return', 'else if', 'else', 'switch', 'case'];
@@ -16,7 +15,6 @@ const tokenizerConfig: TokenizerConfig = {
     DIGIT: '1234567890',
     OPERATOR: '-+/*%=<>!|&^?:',
     STRING_DELIM: "\"'\`",
-    WHITESPACE: '\t\n\r ',
     SINGLE_LINE_COMMENT: '//',
     MULTI_LINE_COMMENT_START: '/*',
     MULTI_LINE_COMMENT_END: '*/',
@@ -74,6 +72,7 @@ const removeTypes: ParseStep = (result: ParseResult) => {
 }
 
 const parseSequence: ParseSequence = [
+    common.removeWhitespace,
     common.removeComments,
     common.getCombineIdentifierChainsFn(IDENTIFIER_CHAIN_CHARS),
     common.combineBracketNotation,
@@ -84,17 +83,28 @@ const parseSequence: ParseSequence = [
     common.removePunctuation,
     common.removeOperators,
     common.getCombineCommonMultiWordKeywordsFn(MULTIWORD_KEYWORDS),
-    common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
-    common.removeNonIdentifiers
+    common.getSetDefaultIdFn(LOG_ID_KEYWORDS), // HAS TO BE BEFORE removeFunctionNames
+    common.removeNonIdentifiers,
+    common.storeTokensAsLogItems
 ];
 
-const loggerConfig: LoggerConfig = <LoggerConfig>{
-	logPrefixes: ['Console.WriteLine('],
-	parameterSeparator: ' + ',
-	identifierPrefix: '',
-	identifierSuffix: '',
-	logSuffixes: [');'],
-	quoteCharacter: '"'
-};
+const loggerConfig: LoggerConfig = [
+    {
+        logPrefix: 'Console.WriteLine(',
+        parameterSeparator: ' + ',
+        identifierPrefix: '',
+        identifierSuffix: '',
+        logSuffix: ');',
+        quoteCharacter: '"'
+    },
+    {
+        logPrefix: 'Debug.Log(',
+        parameterSeparator: ' + ',
+        identifierPrefix: '(',
+        identifierSuffix: ').toString()',
+        logSuffix: ');',
+        quoteCharacter: '"'
+    }
+]
 
 export {tokenizerConfig, parseSequence, loggerConfig};
