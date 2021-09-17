@@ -239,8 +239,8 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
      */
     function tokenize(input: string): Token[] {
         const tokens: Token[] = [];
-        let j = 0
-        while(i < input.length && j < 999) {
+        // j is infinite loop protection, the internal caret i is incremented in read* functions
+        for (let j = 0; j < 9999 && i < input.length; j++) {
             const c = input[i]
             let token;
             switch (true) {
@@ -272,7 +272,6 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
                     const e = new Error(`LogMagic: Tokenizer failed to parse next token "${input.substring(i, 16)}..."`);
                     throw e;
             }
-            j++;
             tokens.push(token);
         }
         return tokens;
