@@ -209,7 +209,6 @@ const removeEmptyLogItems: ParseStep = (result: ParseResult): void => {
     result.logItems = result.logItems?.filter((logItem: Token[]) => logItem.length > 0);
 }
 
-
 /**
 * Create a LogRotator function according to the LoggerConfig.
 *

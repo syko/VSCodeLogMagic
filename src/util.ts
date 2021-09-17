@@ -132,7 +132,7 @@ export function serializeTokens (tokens: Token[]): string {
  * @returns The same Token
  */
 export function appendColon(token: Token): Token {
-	if (token.type === TOKEN_STRING) token.value = token.value + ':';
+	token.value = token.value + ':';
 	return token;
 }
 
@@ -142,7 +142,6 @@ export function appendColon(token: Token): Token {
  * @returns The same Token
  */
 export function popColon(token: Token): Token {
-	if (token.type !== TOKEN_STRING) return token;
 	const v = '' + token.value
 	if (v[v.length - 1] === ':') token.value = v.substr(0, v.length - 1);
 	return token;

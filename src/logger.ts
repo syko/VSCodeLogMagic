@@ -36,7 +36,7 @@ export type Logger = (parseResult: ParseResult) => string;
  * A function for building the list of tokens for logging based on the given LoggerConfig.
  * Returns a string such as '"someVar:", someVar, "otherVar:", otherVar' or '"someVar:" + someVar.toString() + "otherVar:" + otherVar.toString()'
  * depending on the LoggerConfig. It does not produce a '"someVar:"' string part for an identifier if it's identical to the logId as that's
- * already printed as the first item.
+ * already printed as the first item and also not for items that are only literals (no point printing "\"foo\":" + "foo").
  *
  * @param parseResult The parse result to get tokens from
  * @param format the logger config to use for log syntax
@@ -44,9 +44,10 @@ export type Logger = (parseResult: ParseResult) => string;
  */
 function listLogItems(parseResult: ParseResult, format: LogFormat) {
 	return parseResult.logItems.map((logItem: Token[]) => {
-		const itemStr = serializeTokens(logItem); //TODO: SHORTEN KEY
-		const shouldLogItemKey = itemStr !== '' + parseResult.logId?.value
-			&& logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
+		const itemStr = serializeTokens(logItem); // TODO: SHORTEN KEY
+		const itemMatchesLogId = itemStr + ':' === '' + parseResult.logId?.value;
+		const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
+		const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
 		return (shouldLogItemKey ? quoteString(itemStr + ':', format.quoteCharacter) + format.parameterSeparator : '')
 				+ format.identifierPrefix
 				+ itemStr
@@ -65,11 +66,12 @@ function listLogItems(parseResult: ParseResult, format: LogFormat) {
 export function log(parseResult: ParseResult, format?: LogFormat) {
 	if(!format) format = parseResult.logFormat;
 	if (!format) throw new Error("LogMagic: log needs to be passed a LogFormat or have one on the ParseResult object");
-	if (parseResult.logId) appendColon(parseResult.logId);
+	if (parseResult.logId && parseResult.logItems.length) appendColon(parseResult.logId);
+	const params = [];
+	if (parseResult.logId) params.push(quoteString('' + parseResult.logId.value, format.quoteCharacter));
+	if (parseResult.logItems.length) params.push(listLogItems(parseResult, format));
 	return format.logPrefix
-		+ quoteString('' + parseResult.logId?.value, format.quoteCharacter)
-		+ (parseResult.logItems.length  ? format.parameterSeparator : '')
-		+ listLogItems(parseResult, format)
+		+ params.join(format.parameterSeparator)
 		+ format.logSuffix;
 }
 

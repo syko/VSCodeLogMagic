@@ -271,7 +271,7 @@ export const common = {
 			// Either use first interesting keyword or first identifier
 			let t: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
 			if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
-			if (t) result.logId = t;
+			if (t) result.logId = {...t};
 		}
 	},
 
