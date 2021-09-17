@@ -33,6 +33,36 @@ export type LoggerConfig = LogFormat[];
 export type Logger = (parseResult: ParseResult) => string;
 
 /**
+ * Validate a LogFormat object. This is necessary since the user can override LogFormats via settings.
+ * 
+ * @param format The LogFormat to validate
+ * @returns An error message or null if valid
+ */
+export function validateLogFormat(format: LogFormat): string | null {
+	if(typeof format.logPrefix !== 'string') return 'logPrefix not found or is not a string';
+	if(typeof format.parameterSeparator !== 'string') return 'parameterSeparator not found or is not a string';
+	if(typeof format.identifierPrefix !== 'string') return 'identifierPrefix not found or is not a string';
+	if(typeof format.identifierSuffix !== 'string') return 'identifierSuffix not found or is not a string';
+	if(typeof format.logSuffix !== 'string') return 'logSuffix not found or is not a string';
+	if(typeof format.quoteCharacter !== 'string') return 'quoteCharacter not found or is not a string';
+	return null;
+}
+
+/**
+ * Validate a LoggerConfig object. This is necessary since the user can override LoggerConfigs via settings.
+ * 
+ * @param config The LoggerConfig to validate
+ * @returns An error message or null if valid
+ */
+export function validateLoggerConfig(config: LoggerConfig): string | null {
+	for (let i = 0; i < config.length; i++) {
+		const error = validateLogFormat(config[i]);
+		if (error) return `Log Format nr ${i + 1} is invalid: ${error}`;
+	}
+	return null;
+}
+
+/**
  * A function for building the list of tokens for logging based on the given LoggerConfig.
  * Returns a string such as '"someVar:", someVar, "otherVar:", otherVar' or '"someVar:" + someVar.toString() + "otherVar:" + otherVar.toString()'
  * depending on the LoggerConfig. It does not produce a '"someVar:"' string part for an identifier if it's identical to the logId as that's

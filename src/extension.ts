@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import {createTokenizer, Tokenizer, TOKEN_STRING} from './tokenizer';
 import {Parser, createParser, ParseResult} from './parser'
-import {createLogger, Logger} from './logger';
+import {createLogger, Logger, LoggerConfig, validateLoggerConfig} from './logger';
 import {createLogRotator, LogRotator} from './logRotator';
 
 /**
@@ -12,6 +12,13 @@ import {createLogRotator, LogRotator} from './logRotator';
 type MagicItem = {
 	tokenize: Tokenizer;
 	parse: Parser;
+	log: Logger;
+	rotateLog: LogRotator;
+}
+/**
+ * A magical item allowing us to output a log statement with a single keypress.
+ */
+type MagicItemOverride = {
 	log: Logger;
 	rotateLog: LogRotator;
 }
@@ -58,19 +65,34 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('logmagic.logDown', async () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		// const editor = vscode.window.activeTextEditor;
+		const editor = vscode.window.activeTextEditor;
 		// if (!editor) return;
 		// const {text} = editor.document.lineAt(editor.selection.active.line);
 		// javascript, typescript, csharp
+		const loggerConfigOverride: LoggerConfig | undefined = vscode.workspace.getConfiguration('logMagic', editor?.document).get('logFormats');
+		let magicOverride: MagicItemOverride;
+		if (loggerConfigOverride) {
+			const errorMsg = validateLoggerConfig(loggerConfigOverride);
+			if (!errorMsg) {
+				magicOverride = <MagicItemOverride>{
+					log: createLogger(loggerConfigOverride[0]),
+					rotateLog: createLogRotator(loggerConfigOverride)
+				}
+			} else {
+				vscode.window.setStatusBarMessage('LogMagic: Using default configuration since the provided configuration is invalid: ' + errorMsg, 5000);
+			}
+		}
+		// console.log(vscode.workspace.getConfiguration('logMagic', editor?.document).inspect('logFormats'));
 		const magic = await getMagicItem(vscode.window.activeTextEditor?.document.languageId || 'javascript');
 		try {
-			// console.log("Result", magic.log(magic.parse(magic.tokenize(`var foo = 123 + bar;`))));
 			const ensureLogId = (parseResult: ParseResult): ParseResult => {
 				if (!parseResult.logId) parseResult.logId = {type: TOKEN_STRING, value: 'L14'};// + editor.selection.active.line
 				return parseResult;
 			}
 			// console.log("Result", magic.log(ensureLogId(magic.parse(magic.tokenize(`var foo = someFunc(param1, param2)`)))));
-			console.log("Rot", magic.rotateLog(magic.tokenize('Console.WriteLine("if" + (someCall(a, b) + 123) + "foo:" + foo + "bar:" + [1,2,3]);') || ''));
+			// console.log("Rot", magic.rotateLog(magic.tokenize('Console.WriteLine("if" + (someCall(a, b) + 123) + "foo:" + foo + "bar:" + [1,2,3]);') || ''));
+			// (magicOverride?.log || magic.log)(ensureLogId(magic.parse(magic.tokenize(input))))
+			// (magicOverride?.rotateLog || magic.rotateLog)(magic.tokenize(input))
 		} catch (e) {
 			console.error(e);
 		}
