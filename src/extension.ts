@@ -62,7 +62,6 @@ export function activate(context: vscode.ExtensionContext) {
 		// if (!editor) return;
 		// const {text} = editor.document.lineAt(editor.selection.active.line);
 		// javascript, typescript, csharp
-		// CHECK EVERYTHING THAT ACCESSES tokens[i + 1] !!!!!!!!!!!!!!
 		const magic = await getMagicItem(vscode.window.activeTextEditor?.document.languageId || 'javascript');
 		try {
 			// console.log("Result", magic.log(magic.parse(magic.tokenize(`var foo = 123 + bar;`))));

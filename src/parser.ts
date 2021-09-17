@@ -68,13 +68,14 @@ export class ParseError extends Error {
 export const common = {
 
 	/**
-	 * Return a ParseStep function taht combines chained identifiers into one (eg. somePackage.someNamespace.someVariable)
+	 * Return a ParseStep function that combines chained identifiers into one
+	 * (eg. somePackage.someNamespace.someVariable becomes a single identifier token)
 	 *
 	 * @param chainingCharacters An array of characters that can chain identifiers together (probably ['.'] in most cases)
 	 * @returns A ParseStep function
 	 */
 	getCombineIdentifierChainsFn: (chainingCharacters: string[]): ParseStep => {
-		return <ParseStep>(result: ParseResult): void => {
+		return (result: ParseResult): void => {
 			const tokens = result.tokens;
 			const newTokens: Token[] = [];
 			let chain: Token[] | null = null;
@@ -108,7 +109,7 @@ export const common = {
 	},
 
 	/**
-	 * Combine bracket notation into a single identifier (eg. someArray[12]).
+	 * Combine bracket notation into a single identifier (eg. someArray[12] becomes a single identifier token).
 	 * This also removes the "[12]" part from the tokens unless it contains another identifier (someArray[myVar + 1]).
 	 * This way inner variables can still be used in the output.
 	 * 
@@ -131,7 +132,7 @@ export const common = {
 	},
 
 	/**
-	 * Remove all lambda expressions from the ParseResult.
+	 * Remove all `params => expr`-style lambdas from the ParseResult.
 	 * Supports parameters '(p1, p2) => doSomething(p1, p2)'
 	 * Supports parameters without parentheses 'p => { return doSomething(p) }'
 	 * Supports wrapped lambda bodies '(p) => { return doSomething(p) }'
@@ -148,7 +149,7 @@ export const common = {
 			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
 		}
 
-		while (true) {
+		for (let q = 0; q < 9999; q++) { // q is just infinite loop protection
 			let startIndex: number, endIndex: number;
 			let t: Token;
 			const operatorIndex: number = findNextLambdaOperatorIndex(tokens, skippedLambdaIndex + 1);
@@ -236,7 +237,7 @@ export const common = {
 
 	/**
 	 * Return a ParseStep function for combining multi-word keywords into a single token
-	 * Eg. Specifying [['else', 'if'], ['not', 'in']] will combine 'else', 'if', 'not', 'in' tokens into 'else if' and 'not in'.
+	 * Eg. Specifying [['else', 'if'], ['not', 'in']] will combine consecutive 'else', 'if' and 'not', 'in' tokens into 'else if' and 'not in' tokens.
 	 *
 	 * @param keywords An array of keywords to combine. Each keyword is a sub-array with individual words as separate items.
 	 * @returns A ParseStep function for combining multi-word keywords.
@@ -245,6 +246,7 @@ export const common = {
 		return (result: ParseResult): void => {
 			const tokens = result.tokens;
 			for (let i = 0; i < tokens.length; i++) {
+				// foundKeyword will be a multi-word keyword array such as ['else', 'if'] that matches the tokens at current position
 				const foundKeyword: string[] | undefined = keywords.find((kw: string[]) => kw.every((w, j) => {
 					return tokens[i + j]?.type == TOKEN_KEYWORD && tokens[i + j]?.value === w;
 				}));
@@ -265,7 +267,7 @@ export const common = {
 	 * @returns A ParseStep function for setting the logId property.
 	 */
 	getSetDefaultIdFn: (interestingKeywords: string[]): ParseStep => {
-		return <ParseStep>(result: ParseResult): void => {
+		return (result: ParseResult): void => {
 			// Either use first interesting keyword or first identifier
 			let t: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
 			if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);

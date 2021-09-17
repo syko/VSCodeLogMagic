@@ -68,7 +68,7 @@ export function log(parseResult: ParseResult, format?: LogFormat) {
 	if (parseResult.logId) appendColon(parseResult.logId);
 	return format.logPrefix
 		+ quoteString('' + parseResult.logId?.value, format.quoteCharacter)
-		+ format.parameterSeparator
+		+ (parseResult.logItems.length  ? format.parameterSeparator : '')
 		+ listLogItems(parseResult, format)
 		+ format.logSuffix;
 }
@@ -76,9 +76,9 @@ export function log(parseResult: ParseResult, format?: LogFormat) {
 /**
  * Create a log function bound to a specific LogFormat.
  *
- * @param format THe LogFormat to usee.
+ * @param format The LogFormat to usee.
  * @returns A bound log function
  */
 export function createLogger(format: LogFormat): Logger {
-	return <Logger>(parseResult: ParseResult) => log(parseResult, format);
+	return (parseResult: ParseResult) => log(parseResult, format);
 }

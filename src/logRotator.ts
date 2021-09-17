@@ -10,9 +10,6 @@ import {getCodeBlockAt, isCompleteCodeBlock, popColon, serializeToken} from './u
  * For example, given the LoggerConfig of {logPrefixes: ['console.log(', 'console.warn('], logSuffixes: [');']} passing
  * the LogRotator a string 'console.log(something);' will return 'console.warn(something);'.
  *
- * Both logPrefixes and logSuffixes are rotated but if there are more prefixes than suffixes then the last suffix in the array
- * is used for prefixes that don't have a corresponding suffix in the array (see above example). 
- *
  * If the statement can't be rotated, null is returned.
  * 
  * The LogRotator implements its own log statement parser that works differently from the normal parser. It tries to preserve
@@ -20,6 +17,16 @@ import {getCodeBlockAt, isCompleteCodeBlock, popColon, serializeToken} from './u
  */
 export type LogRotator = (tokens: Token[]) => string | null;
 
+/**
+ * Walk the tokens at a given index in a given direction and try to match their combined values against the given string.
+ * This is like a startsWith function for tokens that supports matching at any index and in both directions.
+ * 
+ * @param tokens The tokens to walkt
+ * @param str The string to match the tokens against
+ * @param index From what index to start matching tokens
+ * @param direction The direction in which to walk the tokens
+ * @returns An array of tokens that match the given string or an empty array if no match
+ */
 function getMatchingTokens(tokens: Token[], str: string, index: number = 0, direction: number = 1): Token[] {
 	let serializedStr: string = '';
 	for (let i = index; i >= 0 && i < tokens.length; i += direction) {
@@ -34,6 +41,8 @@ function getMatchingTokens(tokens: Token[], str: string, index: number = 0, dire
  * a match is found and stores the LogFormat in the ParseResult.
  * The matched logPrefix tokens are then removed.
  * The LogFormat is used in later ParseStep functions.
+ * 
+ * If no matching LogFormat is found, a ParseError is thrown as subsequent parse steps rely on this one succeeding.
  *
  * @param config The LoggerConfig to use for parsing the log statement
  * @returns A ParseStep function
@@ -67,7 +76,7 @@ const removeLogSuffix: ParseStep = (result: ParseResult): void => {
 };
 
 /**
- * A ParserStep function that finds the first non-whitespace token and stores it as the logId.
+ * A ParserStep function that finds the first non-whitespace token and stores it as the logId if it is a string token.
  * A colon suffix is removed from the token value if there is one.
  *
  * @param result The result to parse and modify in place
@@ -83,6 +92,8 @@ const detectLogId: ParseStep = (result: ParseResult): void => {
  * A ParserStep function that looks for "log item keys" and removes the matching tokens.
  * A "log item key" is a string version of a series of tokens with a colon appended to it and is
  * logged right before the corresponding log item.
+ * 
+ * TODO: This actually just looks for a single identifier without the colon. Need to allow multiple tokens and support shortening of key.
  *
  * @param result The result to parse and modify in place
  */
@@ -128,7 +139,7 @@ function* getTokensUntilSeparator (tokens: Token[], separator: string): Generato
 }
 
 /**
- * A ParserStep function splits the tokens at separator points according to the identified LogFormat's parameterSeparator
+ * A ParserStep function that splits the tokens at separator points according to the identified LogFormat's parameterSeparator
  * and stores the tokens logItems.
  *
  * @param result The result to parse and modify in place
@@ -144,7 +155,7 @@ const collectLogItems: ParseStep = (result: ParseResult): void => {
 };
 
 /**
- * A function  that returns a ParseStep funcion that remove tokens
+ * A function that returns a ParseStep funcion that removes tokens
  * in each log item of a given type that are not within code blocks.
  * NB! This ParseStep function operates on logItems instead of the tokens array!
  *
@@ -158,7 +169,7 @@ const getRemoveTokensNotInCodeBlocksFn: ParseStepFactory = (type: TokenType): Pa
             for (let j = 0; j < logItem.length; j++) {
                 const codeBlock: Token[] = getCodeBlockAt(logItem, j);
                 if (isCompleteCodeBlock(codeBlock)) {
-                    j += codeBlock.length;
+                    j += codeBlock.length - 1;
                 } else if (logItem[j].type === type) {
                     logItem.splice(j, 1);
                     j--;
@@ -207,16 +218,15 @@ const removeEmptyLogItems: ParseStep = (result: ParseResult): void => {
 */
 export function createLogRotator(config: LoggerConfig): LogRotator {
     const parseSequence: ParseSequence = [
-        getDetectLogFormatFn(config), // collect tokens until we get logPrefix, store & remove
-        removeLogSuffix, // collect tokens from end until we get logSuffix, remove
-        detectLogId, // collect first string, store
-        removeIdentifierStrings, // remove strings that match next identifier + ':'
-        collectLogItems, // Walk & collect anything between parameterSeparators & not in code blocks
-        getRemoveTokensNotInCodeBlocksFn(TOKEN_PUNCTUATION), // Remove punctuation that's not in any code blocks
-        getRemoveTokensNotInCodeBlocksFn(TOKEN_OPERATOR), // Remove operators not in any code blocks
+        getDetectLogFormatFn(config),
+        removeLogSuffix,
+        detectLogId,
+        removeIdentifierStrings,
+        collectLogItems,
+        getRemoveTokensNotInCodeBlocksFn(TOKEN_PUNCTUATION),
+        getRemoveTokensNotInCodeBlocksFn(TOKEN_OPERATOR),
         removeIdentifierPrefixesAndSuffixes,
         removeEmptyLogItems,
-	
     ];
 
 	const rotatorFn:LogRotator = (tokens: Token[]): string | null => {
@@ -227,8 +237,7 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
 			if (e instanceof ParseError) return null;
 			else throw e;
 		}
-		if(!result.logFormat) throw new ParseError("LogMagic: Failed to parse log statement: no matching log format found.");
-		const currentFormatIndex = config.indexOf(result.logFormat);
+		const currentFormatIndex = config.indexOf(result.logFormat!);
 		result.logFormat = config[(currentFormatIndex + 1) % config.length];
 		return log(result);
 	}
