@@ -1,7 +1,7 @@
 import {LoggerConfig} from "../logger";
 import {ParseResult, ParseSequence, ParseStep, common} from "../parser";
 import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION} from "../tokenizer";
-import {getCodeBlockAt} from "../util";
+import {getCodeBlockAt, PARENS_EXT} from "../util";
 
 const LOG_ID_KEYWORDS = ['if', 'return', 'else if', 'else', 'switch', 'case'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
@@ -57,7 +57,7 @@ const removeTypes: ParseStep = (result: ParseResult) => {
         const token: Token = result.tokens[i];
         if (token.type !== TOKEN_OPERATOR || token.value !== '<') continue;
         // Found '<', let's check if it's a type notation
-        const block = getCodeBlockAt(result.tokens, i);
+        const block = getCodeBlockAt(result.tokens, i, 1, PARENS_EXT);
         // Check if we found the end of block at all or if this might be a comparision operator instead
         if (block[block.length - 1].type !== TOKEN_OPERATOR || block[block.length - 1].value !== '>') continue;
         // Check if the block only contains comma-separated list of identifiers or if we might've found 2 comparisons instead

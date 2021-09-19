@@ -293,7 +293,7 @@ export const common = {
  */
 export function createParser(sequence: ParseSequence): Parser {
 
-	const parse: Parser = (tokens: Token[]) => {
+	const parse: Parser = (tokens: Token[]): ParseResult => {
         const result: ParseResult = { tokens: tokens, logItems: [] };
 		sequence.forEach((fn: ParseStep) => fn(result));
         return result;

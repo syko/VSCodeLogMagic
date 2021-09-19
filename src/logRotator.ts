@@ -1,7 +1,7 @@
 import {Token, TokenType, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING, TOKEN_WHITESPACE} from './tokenizer';
 import {ParseError, ParseResult, ParseSequence, ParseStep, ParseStepFactory} from './parser';
 import {log, LogFormat, LoggerConfig} from './logger';
-import {getCodeBlockAt, isCompleteCodeBlock, popColon, serializeToken} from './util';
+import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, popColon, serializeToken} from './util';
 
 /**
  * A LogRotator is a function that takes a tokenized log statement, rotates the logPrefixes and logSuffixes and returns
@@ -27,7 +27,7 @@ export type LogRotator = (tokens: Token[]) => string | null;
  * @param direction The direction in which to walk the tokens
  * @returns An array of tokens that match the given string or an empty array if no match
  */
-function getMatchingTokens(tokens: Token[], str: string, index: number = 0, direction: number = 1): Token[] {
+function getMatchingTokens(tokens: Token[], str: string, index: number = 0, direction: -1 | 1 = 1): Token[] {
 	let serializedStr: string = '';
 	for (let i = index; i >= 0 && i < tokens.length; i += direction) {
 		serializedStr = direction === 1 ? serializedStr + serializeToken(tokens[i]): serializeToken(tokens[i]) + serializedStr;
@@ -126,7 +126,7 @@ function* getTokensUntilSeparator (tokens: Token[], separator: string): Generato
 			continue;
 		}
 		// No separator here. If there's a codeblock at current index, add it to the accumulator and skip ahead
-		const codeBlock: Token[] = getCodeBlockAt(tokens, i);
+		const codeBlock: Token[] = getCodeBlockAt(tokens, i, 1, PARENS_EXT);
 		if (isCompleteCodeBlock(codeBlock)) {
 			Array.prototype.push.apply(accumulator, codeBlock);
 			i += codeBlock.length - 1;
@@ -167,7 +167,7 @@ const getRemoveTokensNotInCodeBlocksFn: ParseStepFactory = (type: TokenType): Pa
         for (let i = 0; i < result.logItems.length; i++) {
             const logItem = result.logItems[i];
             for (let j = 0; j < logItem.length; j++) {
-                const codeBlock: Token[] = getCodeBlockAt(logItem, j);
+                const codeBlock: Token[] = getCodeBlockAt(logItem, j, 1, PARENS_EXT);
                 if (isCompleteCodeBlock(codeBlock)) {
                     j += codeBlock.length - 1;
                 } else if (logItem[j].type === type) {

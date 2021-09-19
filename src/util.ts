@@ -1,6 +1,10 @@
+import {ParseResult} from "./parser";
 import {Token, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
 
-const PARENS: string = '{[(<>)]}';
+export const PARENS: string = '{[()]}';
+export const PARENS_EXT: string = '{[(<>)]}';
+export const openingP: string = '{[(';
+export const closingP: string = '}])';
 
 function isPuncOrOp (t: Token): boolean {
 	return t.type == TOKEN_PUNCTUATION || t.type == TOKEN_OPERATOR;
@@ -23,12 +27,12 @@ function isOppositeParen (t: Token, initialParen: string): boolean {
  * @param direction The direction in which to look for the code block starting from startIndex. -1 or 1.
  * @returns Array of tokens that form the code block, including the wrapping characters.
  */
-export function getCodeBlockAt (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] {
+export function getCodeBlockAt (tokens: Token[], startIndex: number, direction: -1 | 1 = 1, parens = PARENS): Token[] {
 	const initialParen: string = '' + tokens[startIndex].value;
 	const includedTokens: Token[] = [tokens[startIndex]];
 	let depth = 0;
 
-	if (!isPuncOrOp(tokens[startIndex]) || !PARENS.includes(initialParen)) {
+	if (!isPuncOrOp(tokens[startIndex]) || !parens.includes(initialParen)) {
 		return [];
 	}
 
@@ -58,8 +62,6 @@ export function isCompleteCodeBlock (tokens: Token[]): boolean {
  */
 export function getExpressionAt (tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] {
 	const P: string = '{[()]}';
-	const openingP: string = '{[(';
-	const closingP: string = ')]}';
 	const includedTokens: Token[] = [tokens[startIndex]];
 	const BREAK_CHARS: string = ',;';
 
