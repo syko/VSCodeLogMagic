@@ -239,6 +239,7 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
      */
     function tokenize(input: string): Token[] {
         const tokens: Token[] = [];
+        i = 0;
         // q is infinite loop protection, the internal caret i is incremented in read* functions
         for (let q = 0; q < 9999 && i < input.length; q++) {
             const c = input[i]
