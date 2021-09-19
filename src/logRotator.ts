@@ -222,9 +222,9 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
         detectLogId,
         removeIdentifierStrings,
         collectLogItems,
+        removeIdentifierPrefixesAndSuffixes,
         getRemoveTokensNotInCodeBlocksFn(TOKEN_PUNCTUATION),
         getRemoveTokensNotInCodeBlocksFn(TOKEN_OPERATOR),
-        removeIdentifierPrefixesAndSuffixes,
         removeEmptyLogItems,
     ];
 
