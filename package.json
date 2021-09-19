@@ -18,18 +18,43 @@
 			{
 				"command": "logmagic.logDown",
 				"title": "LogMagic: Log Downwards"
+			},
+			{
+				"command": "logmagic.logUp",
+				"title": "LogMagic: Log Upwards"
 			}
 		],
 		"configuration": {
 			"title": "LogMagic",
 			"properties": {
-			  "logMagic.logFormats": { 
-				"type": "array",
-				"scope": "resource",
-				"description": "Configure one or more log statements to generate & rotate between.\n Can be configured on any setting level, including folders.\n Each statement specification is an object like\n{\n\"logPrefix\": \"A log-function call including the opening parenthesesis print(\",\n\t\"parameterSeparator\": \"A parameter separator, like a comma\",\n\t\"identifierPrefix\": \"Anything to prefix identifiers with\",\n\t\"identifierSuffix\": \"Anything to suffix identifiers with, like .toString()\",\n\t\"logSuffix\": \"An ending suffix to complete the log statement, like );\",\n\t\"quoteCharacter\": \"The quote character to use when logging strings\"\n}"
-			  }
+				"logMagic.defaultLanguage": {
+					"type": "string",
+					"scope": "resource",
+					"description": "The default language to use when the active language is not directly supported by LogMagic.",
+					"enum": ["javascript", "C#"],
+					"default": "javascript"
+				},
+				"logMagic.logFormats": { 
+					"type": "array",
+					"scope": "resource",
+					"description": "Configure one or more log statements to generate & rotate between.\n Can be configured on any setting level, including folders.\n Each statement specification is an object like\n{\n\"logPrefix\": \"A log-function call including the opening parenthesesis print(\",\n\t\"parameterSeparator\": \"A parameter separator, like a comma\",\n\t\"identifierPrefix\": \"Anything to prefix identifiers with\",\n\t\"identifierSuffix\": \"Anything to suffix identifiers with, like .toString()\",\n\t\"logSuffix\": \"An ending suffix to complete the log statement, like );\",\n\t\"quoteCharacter\": \"The quote character to use when logging strings\"\n}"
+				}
 			}
-		}
+		},
+		"keybindings": [
+		  {
+			"command": "logmagic.logDown",
+			"key": "ctrl+j",
+			"mac": "cmd+j",
+			"when": "editorTextFocus && !editorReadonly"
+		  },
+		  {
+			"command": "logmagic.logUp",
+			"key": "ctrl+k",
+			"mac": "cmd+k",
+			"when": "editorTextFocus && !editorReadonly"
+		  }
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run package",

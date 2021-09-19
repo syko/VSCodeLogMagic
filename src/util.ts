@@ -18,6 +18,22 @@ function isOppositeParen (t: Token, initialParen: string): boolean {
 	return isPuncOrOp(t) && t.value === PARENS[PARENS.length - 1 - PARENS.indexOf(initialParen)];
 }
 
+export function isOpeningCodeBlock(str: string): boolean {
+	for (let i = 0; i < openingP.length; i++) {
+		if (str.split(openingP[i]).length > str.split(closingP[i]).length) return true;
+	}
+	return false;
+}
+
+export function isClosingCodeBlock(str: string): boolean {
+	for (let i = 0; i < openingP.length; i++) {
+		if (str.split(closingP[i]).length > str.split(openingP[i]).length) return true;
+	}
+	return false;
+}
+
+
+
 /**
  * Return a code block (a section of code wrapped in (), [], {} or <>) start starts or ends at startIndex.
  * Nested code blocks are ignored.
@@ -147,4 +163,16 @@ export function popColon(token: Token): Token {
 	const v = '' + token.value
 	if (v[v.length - 1] === ':') token.value = v.substr(0, v.length - 1);
 	return token;
+}
+
+/**
+	* Ensure a ParseResult has a logId set. If not, generate one based on the current line number.
+	* 2 is added to the line number because line numbers are 0-based and the log statement is added to the next line.
+	* 
+	* @param parseResult The ParserResult to midfy in place
+	* @returns the same ParseResult
+	*/
+export function ensureLogId (parseResult: ParseResult, lineNr: number): ParseResult {
+	if (!parseResult.logId) parseResult.logId = {type: TOKEN_STRING, value: 'L' + lineNr + 2};
+	return parseResult;
 }

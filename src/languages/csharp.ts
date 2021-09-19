@@ -83,7 +83,7 @@ const parseSequence: ParseSequence = [
     common.removePunctuation,
     common.removeOperators,
     common.getCombineCommonMultiWordKeywordsFn(MULTIWORD_KEYWORDS),
-    common.getSetDefaultIdFn(LOG_ID_KEYWORDS), // HAS TO BE BEFORE removeFunctionNames
+    common.getSetDefaultIdFn(LOG_ID_KEYWORDS), // TODO: HAS TO BE BEFORE removeFunctionNames
     common.removeNonIdentifiers,
     common.storeTokensAsLogItems
 ];
