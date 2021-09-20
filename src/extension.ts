@@ -232,17 +232,16 @@ function createLogMagicFn(logDirection: -1 | 1) {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) return;
 		
-		const _ensureLogId = (parseResult: ParseResult): ParseResult => ensureLogId(parseResult, editor.selection.active.line);
+		const _ensureLogId = (parseResult: ParseResult): ParseResult => ensureLogId(parseResult, editor.selection.active.line, logDirection);
 
 		const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('logMagic', editor.document);
-		const defaultLanguage = languageSettingToModuleName(configuration.get('defaultLanguage')) || 'javascript';
+		const defaultLanguage = languageSettingToLanguageId(configuration.get('defaultLanguage')) || 'javascript';
 		const documentLanguage = editor.document.languageId || defaultLanguage;
 		const magic = await getMagicItem(documentLanguage, defaultLanguage);
 
 		// Fetch configuration overrides
 
 		const loggerConfigOverride: LoggerConfig | undefined = configuration.get('logFormats');
-		console.log('override', loggerConfigOverride)
 		let magicOverride: MagicItemOverride | null = null;
 		if (loggerConfigOverride?.length) {
 			const errorMsg = validateLoggerConfig(loggerConfigOverride);

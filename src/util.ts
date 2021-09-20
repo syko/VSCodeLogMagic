@@ -196,7 +196,7 @@ export function popColon(token: Token): Token {
 	* @param parseResult The ParserResult to midfy in place
 	* @returns the same ParseResult
 	*/
-export function ensureLogId (parseResult: ParseResult, lineNr: number): ParseResult {
-	if (!parseResult.logId) parseResult.logId = {type: TOKEN_STRING, value: 'L' + lineNr + 2};
+export function ensureLogId (parseResult: ParseResult, lineNr: number, direction: 1 | -1): ParseResult {
+	if (!parseResult.logId) parseResult.logId = {type: TOKEN_STRING, value: 'L' + (lineNr + 1 + Math.max(0, direction))};
 	return parseResult;
 }
