@@ -12,6 +12,13 @@
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"logging",
+		"print",
+		"console",
+		"debug",
+		"code generation"
+	],
 	"activationEvents": [
         "onCommand:logmagic.logDown"
 	],
