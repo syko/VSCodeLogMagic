@@ -42,10 +42,11 @@ let magicItems: MagicItems = {}
  * @returns The MagicItem for the language
  */
 async function getMagicItem(languageId: string, fallbackId: string = 'javascript'): Promise<MagicItem> {
-	if (!magicItems[languageId]) {
+	const moduleName = languageIdToModuleName(languageId);
+	if (!magicItems[moduleName]) {
 		try {
-			const { parseSequence, tokenizerConfig, loggerConfig, getCaretPosition } = await import('./languages/' + languageId);
-			magicItems[languageId] = <MagicItem>{
+			const { parseSequence, tokenizerConfig, loggerConfig, getCaretPosition } = await import('./languages/' + moduleName);
+			magicItems[moduleName] = <MagicItem>{
 				tokenize: createTokenizer(tokenizerConfig),
 				parse: createParser(parseSequence),
 				log: createLogger(loggerConfig[0]),
@@ -56,22 +57,35 @@ async function getMagicItem(languageId: string, fallbackId: string = 'javascript
 			return getMagicItem(fallbackId); // Return default parser if no direct implementation for this language exists
 		}
 	}
-	return magicItems[languageId];
+	return magicItems[moduleName];
 }
 
 /**
  * A function for converting an editor default language setting value to its corresponding
- * languageId / module name. (eg. converts 'C#' into 'csharp')
+ * languageId. (eg. converts 'C#' into 'csharp')
  *
  * @param setting The setting value
  * @returns The corresponding module name (file from ./languages)
  */
-function languageSettingToModuleName(setting: string | undefined) {
+function languageSettingToLanguageId(setting: string | undefined): string | undefined {
 	if (!setting) return setting;
 	return {
-		'javascript': 'javascript',
 		'C#': 'csharp'
-	}[setting];
+	}[setting] || setting; // Pass through if no override found
+}
+
+/**
+ * A function for converting languageId to its corresponding
+ * module name. This allows to override and reuse language modules.
+ *
+ * @param languageId The setting value
+ * @returns The corresponding module name (file from ./languages)
+ */
+function languageIdToModuleName(languageId: string): string {
+	if (!languageId) return languageId;
+	return {
+		'javascriptreact': 'javascript'
+	}[languageId] || languageId; // Pass through if no override found
 }
 
 /**
