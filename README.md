@@ -4,13 +4,13 @@ Easily print variables and parameters with keyboard shortcuts for quick debuggin
 
 ## Features
 
-### Log quickly
+### Log Quickly
 
 Any log statement is just a keyboard shortuct away
 
 ![Log anything quickly](images/log-anything.gif "Log anything quickly")
 
-### Log anything
+### Log Anything
 
 LogMagic inspects the current line and tries to extract interesting information from it:
 - variable assignments
@@ -19,21 +19,25 @@ LogMagic inspects the current line and tries to extract interesting information 
 - ignores literals and keywords such as strings, numbers, `true,` `false`, `null`, `undefined`, etc
 - falls back to printing `L<line number>` if it fails to parse anything meaningful
 
-### Cycle through log types
-
-Press the same keyboard shortcuts when already on a log statement to cycle through `log`,
-`info`, `warn` and `error`.
-
-![Log cycle](images/log-cycle.gif "Cycling through log levels is a breeze")
-
-### Up / Down support
+### Up / Down Support
 
 You can add the log statement on the previous or the next line. This is especially helpful in case of return
 statements.
 
-![Log upwards](images/log-up.gif "Log upwards!")
+### Cycle Through Different Kinds of Log Statements
 
-### COMING SOON: Remove all log statements
+Press the same keyboard shortcuts when already on a log statement to cycle through different kinds of log statements.
+In javascript for example you can cycle through `log`, `info`, `warn` and `error` levels. In C# you can cycle through
+`System.Write`, `System.Write` and unity's `Debug.Log` options.
+
+![Log cycle](images/log-cycle.gif "Cycling through log levels is a breeze")
+
+### Add Your Own Log Statements
+
+For each language you can configure your own log statements to cycle through. You can even wrap logged identifiers in
+your own decorator functions or append `.toString` for example.
+
+### COMING SOON: Remove All Log Statements
 
 With one command you can remove all log statements from the current file.
 
