@@ -180,10 +180,13 @@ function createLogMagicFn(logDirection: -1 | 1) {
 			}
 		}
 
+		// Sort selections so we can use their indexes so in case of multiple cursors we know how much previous log statements have offset the line numbers
+		const selections = editor.selections.sort((a: vscode.Selection, b: vscode.Selection) => a.active.line - b.active.line);
+		// Callbacks for changing caret positions after outputting the log statements
 		const selectionChanges: ((i: number) => vscode.Selection)[] = [];
 		
 		const success = await editor.edit((editBuilder: vscode.TextEditorEdit): void => {
-			editor.selections.forEach(selection => {
+			selections.forEach(selection => {
 				try {
 					
 					const lineToLog: vscode.TextLine = findContentfulLine(editor.document, selection, logDirection);
@@ -229,7 +232,7 @@ function createLogMagicFn(logDirection: -1 | 1) {
 
 		if (success) {
 			const newSelections: vscode.Selection[] = [];
-			for (let i = 0; i < editor.selections.length; i++) {
+			for (let i = 0; i < selections.length; i++) {
 				const change = selectionChanges[i];
 				if (!change) continue;
 				newSelections.push(change(i));
