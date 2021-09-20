@@ -31,7 +31,6 @@ export type TokenizerConfig = {
 	PUNCTUATION: string;
 	IDENTIFIER_START: string;
     IDENTIFIER: string;
-    IDENTIFIER_CHAIN: string;
     DIGIT: string;
     OPERATOR: string;
     STRING_DELIM: string;

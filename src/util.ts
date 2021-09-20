@@ -15,9 +15,17 @@ function isSameParen (t: Token, initialParen: string): boolean {
 }
 
 function isOppositeParen (t: Token, initialParen: string): boolean {
-	return isPuncOrOp(t) && t.value === PARENS[PARENS.length - 1 - PARENS.indexOf(initialParen)];
+	return isPuncOrOp(t) && t.value === PARENS_EXT[PARENS_EXT.length - 1 - PARENS_EXT.indexOf(initialParen)];
 }
 
+/**
+ * A function that returns true if the given string is opening a new code block
+ * (by testing to see if there is an opening paren of some sort that is not matched
+ * by a closing paren).
+ *
+ * @param str The string to test
+ * @returns true if the string contains the opening of a code block
+ */
 export function isOpeningCodeBlock(str: string): boolean {
 	for (let i = 0; i < openingP.length; i++) {
 		if (str.split(openingP[i]).length > str.split(closingP[i]).length) return true;
@@ -25,14 +33,20 @@ export function isOpeningCodeBlock(str: string): boolean {
 	return false;
 }
 
+/**
+ * A function that returns true if the given string is closing a code block
+ * (by testing to see if there is a closing paren of some sort that is not matched
+ * by an opening paren).
+ *
+ * @param str The string to test
+ * @returns true if the string contains the closing of a code block
+ */
 export function isClosingCodeBlock(str: string): boolean {
 	for (let i = 0; i < openingP.length; i++) {
 		if (str.split(closingP[i]).length > str.split(openingP[i]).length) return true;
 	}
 	return false;
 }
-
-
 
 /**
  * Return a code block (a section of code wrapped in (), [], {} or <>) start starts or ends at startIndex.

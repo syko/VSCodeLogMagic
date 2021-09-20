@@ -1,6 +1,7 @@
 import {LogFormat} from "./logger";
 import {
 	Token,
+	TokenType,
 	TOKEN_COMMENT,
 	TOKEN_IDENTIFIER,
 	TOKEN_KEYWORD,
@@ -105,6 +106,33 @@ export const common = {
 			}
 
 			result.tokens = newTokens;
+		}
+	},
+
+	/**
+	 * Return a ParseStep function for combining consecutive tokens into a single token.
+	 * Eg. Specifying [['else', 'if'], ['not', 'in']] will combine consecutive 'else', 'if' and 'not', 'in' tokens into 'else if' and 'not in' tokens.
+	 *
+	 * @param types A whitelist of token types to consider when looking for matches
+	 * @param newType What the type of the combined token should be
+	 * @param valuesToCombine An array of keywords to combine. Each keyword is a sub-array with individual words as separate items.
+	 * @param separator An optional separator string to use when joining token values
+	 * @returns A ParseStep function for combining multi-word keywords.
+	 */
+	getCombineConsecutiveTokensFn: (types: TokenType[], newType: TokenType, valuesToCombine: string[][], separator: string = ''): ParseStep => {
+		return (result: ParseResult): void => {
+			const tokens = result.tokens;
+			for (let i = 0; i < tokens.length; i++) {
+				// match will be an item from valuesToCombine matches the tokens at current position
+				const match: string[] | undefined = valuesToCombine.find((toCombine: string[]) => toCombine.every((v, j) => {
+					return types.includes(tokens[i + j]?.type) && tokens[i + j]?.value === v;
+				}));
+				if (match) {
+					tokens[i].type = newType;
+					tokens[i].value = match.join(separator);
+					tokens.splice(i + 1, match.length - 1);
+				}
+			}
 		}
 	},
 
@@ -236,29 +264,6 @@ export const common = {
 	},
 
 	/**
-	 * Return a ParseStep function for combining multi-word keywords into a single token
-	 * Eg. Specifying [['else', 'if'], ['not', 'in']] will combine consecutive 'else', 'if' and 'not', 'in' tokens into 'else if' and 'not in' tokens.
-	 *
-	 * @param keywords An array of keywords to combine. Each keyword is a sub-array with individual words as separate items.
-	 * @returns A ParseStep function for combining multi-word keywords.
-	 */
-	getCombineCommonMultiWordKeywordsFn: <ParseStepFactory> (keywords: string[][]): ParseStep => {
-		return (result: ParseResult): void => {
-			const tokens = result.tokens;
-			for (let i = 0; i < tokens.length; i++) {
-				// foundKeyword will be a multi-word keyword array such as ['else', 'if'] that matches the tokens at current position
-				const foundKeyword: string[] | undefined = keywords.find((kw: string[]) => kw.every((w, j) => {
-					return tokens[i + j]?.type == TOKEN_KEYWORD && tokens[i + j]?.value === w;
-				}));
-				if (foundKeyword) {
-					tokens[i].value = foundKeyword.join(' ');
-					tokens.splice(i + 1, foundKeyword.length - 1);
-				}
-			}
-		}
-	},
-
-	/**
 	 * Return a ParseStep function for determining the best log Id for the ParseResult.
 	 * If it finds one of the specified keywords in the remaining tokens, it uses that. Otherwise it uses the first identifier it can find.
 	 * If it can't find anything, the logId is left as undefined.
@@ -273,6 +278,15 @@ export const common = {
 			if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
 			if (t) result.logId = {...t};
 		}
+	},
+
+	/**
+	 * A ParseStep function that removes duplicate tokens.
+	 *
+	 * @param result The result to parse and modify in place.
+	 */
+	removeDuplicates: (result: ParseResult): void => {
+		result.tokens = result.tokens.filter((t: Token, i: number) => !result.tokens.find((t2: Token, j: number) => t2.type === t.type && t2.value === t.value && j < i))
 	},
 
 	/**
