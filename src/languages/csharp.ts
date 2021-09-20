@@ -36,19 +36,6 @@ const tokenizerConfig: TokenizerConfig = {
     ]
 };
 
-// + Remove comments - UPDOWN U
-// If "}|]": look for matching "{|[" and use that line instead - DOWN U
-// --- If "...)...": look for matching "(" and combine all lines to one (removing comments before) - DOWN U
-// + foo.bar.buz => one identifier - UPDOWN U
-// + Combine else if
-// + Combine array syntax
-// + Detect & remove types - UPDOWN C# vs TS vs JS Obj Notation
-// + Detect & remove complete lambdas - UPDOWN U  
-// + Remove function names
-// + Remove strings, numbers, punctuation, operators - UPDOWN U w/ different tokenizerConfs
-// + Detect label for log line - if/switch/return/assignee/functioncall/...
-// + Remove keywords
-
 const removeTypes: ParseStep = (result: ParseResult) => {
     // First, remove comma-separated identifiers wrapped in <>
     for (let i = 0; i < result.tokens.length; i++) {
