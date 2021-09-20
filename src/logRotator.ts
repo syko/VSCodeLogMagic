@@ -15,7 +15,7 @@ import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, popColon, serializeToke
  * The LogRotator implements its own log statement parser that works differently from the normal parser. It tries to preserve
  * everything that is logged so that all kinds of log statements can be rotated.
  */
-export type LogRotator = (tokens: Token[]) => string | null;
+export type LogRotator = (tokens: Token[], direction: 1 | -1) => string | null;
 
 /**
  * Walk the tokens at a given index in a given direction and try to match their combined values against the given string.
@@ -228,7 +228,7 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
         removeEmptyLogItems,
     ];
 
-	const rotatorFn:LogRotator = (tokens: Token[]): string | null => {
+	const rotatorFn:LogRotator = (tokens: Token[], direction: 1 | -1): string | null => {
         const result: ParseResult = { tokens: tokens, logItems: [] };
 		try {
 			parseSequence.forEach((fn: ParseStep) => fn(result));
@@ -237,7 +237,7 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
 			else throw e;
 		}
 		const currentFormatIndex = config.indexOf(result.logFormat!);
-		result.logFormat = config[(currentFormatIndex + 1) % config.length];
+		result.logFormat = config[(currentFormatIndex + direction + config.length) % config.length];
 		return log(result);
 	}
 
