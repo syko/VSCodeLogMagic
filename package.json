@@ -1,8 +1,10 @@
 {
   "name": "logmagic",
 	"displayName": "LogMagic",
-	"description": "",
-	"version": "0.0.1",
+	"description": "Easily print variables and parameters with keyboard shortcuts for quick debugging.",
+	"version": "1.0.0",
+	"repository": "https://github.com/syko/VSCodeLogMagic", 
+	"publisher": "syko",
 	"engines": {
 		"vscode": "^1.59.0"
 	},
