@@ -237,6 +237,7 @@ function createLogMagicFn(logDirection: -1 | 1) {
 		const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('logMagic', editor.document);
 		const defaultLanguage = languageSettingToLanguageId(configuration.get('defaultLanguage')) || 'javascript';
 		const documentLanguage = editor.document.languageId || defaultLanguage;
+
 		const magic = await getMagicItem(documentLanguage, defaultLanguage);
 
 		// Fetch configuration overrides
@@ -288,15 +289,6 @@ function createLogMagicFn(logDirection: -1 | 1) {
 							return new vscode.Selection(caretPos, caretPos);
 						});
 					}
-
-					// TODO: javascript
-					// TODO: cleanup README & stuff
-					// LAUNCHABLE
-					// TODO: remove all log lines command
-					// TODO: Shorten keys
-					// TODO: How to detect unity?
-					// TODO: unify function declaration syntaxes
-					// TODO: tests
 				} catch (e) {
 					console.error(e);
 				}
