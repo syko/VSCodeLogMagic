@@ -9,7 +9,7 @@ const MULTICHAR_PUNCTUATION = [['?', '.']];
 const IDENTIFIER_CHAIN_CHARS = ['.', '?.']
 
 const tokenizerConfig: TokenizerConfig = {
-    PUNCTUATION: ',.;\\[]{}@#$()~',
+    PUNCTUATION: ',.;\\[]{}@#()~',
     IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
     IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
     DIGIT: '1234567890',
