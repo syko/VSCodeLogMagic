@@ -310,10 +310,8 @@ function createLogMagicFn(logDirection: -1 | 1) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	let disposable = vscode.commands.registerCommand('logmagic.logDown', createLogMagicFn(1));
-	context.subscriptions.push(disposable);
-	disposable = vscode.commands.registerCommand('logmagic.logUp', createLogMagicFn(-1));
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(vscode.commands.registerCommand('logmagic.logDown', createLogMagicFn(1)));
+	context.subscriptions.push(vscode.commands.registerCommand('logmagic.logUp', createLogMagicFn(-1)));
 }
 
 export function deactivate() {
