@@ -5,7 +5,7 @@
 	"version": "1.0.0",
 	"repository": "https://github.com/syko/VSCodeLogMagic", 
 	"publisher": "syko",
-	"license": "MIT",
+	"license": "See LICENSE",
 	"engines": {
 		"vscode": "^1.59.0"
 	},
