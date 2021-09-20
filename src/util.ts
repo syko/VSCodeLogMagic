@@ -28,7 +28,12 @@ function isOppositeParen (t: Token, initialParen: string): boolean {
  */
 export function isOpeningCodeBlock(str: string): boolean {
 	for (let i = 0; i < openingP.length; i++) {
-		if (str.split(openingP[i]).length > str.split(closingP[i]).length) return true;
+		let depth = 0;
+		for (let j = 0; j < str.length; j++) {
+			if (str[j] === openingP[i]) depth++;
+			else if (str[j] === closingP[i]) depth = Math.max(0, depth - 1);
+		}
+		if (depth > 0) return true;
 	}
 	return false;
 }
@@ -42,8 +47,13 @@ export function isOpeningCodeBlock(str: string): boolean {
  * @returns true if the string contains the closing of a code block
  */
 export function isClosingCodeBlock(str: string): boolean {
-	for (let i = 0; i < openingP.length; i++) {
-		if (str.split(closingP[i]).length > str.split(openingP[i]).length) return true;
+	for (let i = 0; i < closingP.length; i++) {
+		let depth = 0;
+		for (let j = 0; j < str.length; j++) {
+			if (str[j] === openingP[i]) depth++;
+			else if (str[j] === closingP[i]) depth--;
+			if (depth < 0) return true;
+		}
 	}
 	return false;
 }
