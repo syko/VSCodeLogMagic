@@ -57,7 +57,7 @@ export function validateLogFormat(format: LogFormat): string | null {
 export function validateLoggerConfig(config: LoggerConfig): string | null {
 	for (let i = 0; i < config.length; i++) {
 		const error = validateLogFormat(config[i]);
-		if (error) return `Log Format nr ${i + 1} is invalid: ${error}`;
+		if (error) return `Log Format nr ${i + 1}: ${error}`;
 	}
 	return null;
 }

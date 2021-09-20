@@ -228,6 +228,7 @@ function createLogMagicFn(logDirection: -1 | 1) {
 		// Fetch configuration overrides
 
 		const loggerConfigOverride: LoggerConfig | undefined = configuration.get('logFormats');
+		console.log('override', loggerConfigOverride)
 		let magicOverride: MagicItemOverride | null = null;
 		if (loggerConfigOverride?.length) {
 			const errorMsg = validateLoggerConfig(loggerConfigOverride);
@@ -237,7 +238,7 @@ function createLogMagicFn(logDirection: -1 | 1) {
 					rotateLog: createLogRotator(loggerConfigOverride)
 				}
 			} else {
-				vscode.window.setStatusBarMessage('LogMagic: Using default configuration since the provided configuration is invalid: ' + errorMsg, 5000);
+				vscode.window.showErrorMessage('LogMagic: Using default configuration since the provided configuration is invalid.\n' + errorMsg);
 			}
 		}
 
@@ -256,7 +257,7 @@ function createLogMagicFn(logDirection: -1 | 1) {
 
 					// First try rotating the log statement. If it fails, create a new log statement
 
-					let logStatement: string | null = magic.rotateLog(magic.tokenize(lineToLog.text.trim()), logDirection);
+					let logStatement: string | null = (magicOverride?.rotateLog || magic.rotateLog)(magic.tokenize(lineToLog.text.trim()), logDirection);
 					if (logStatement) {
 						replaceStatement(editBuilder, indent + logStatement, lineToLog);
 						selectionChanges.push((selectionIndex: number) => {
