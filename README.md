@@ -1,70 +1,55 @@
-# logmagic README
+# LogMagic for Visual Studio Code
 
-This is the README for your extension "logmagic". After writing up a brief description, we recommend including the following sections.
+Easily print variables and parameters with keyboard shortcuts for quick debugging.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Log quickly
 
-For example if there is an image subfolder under your extension project workspace:
+Any log statement is just a keyboard shortuct away
 
-\!\[feature X\]\(images/feature-x.png\)
+![Log anything quickly](images/log-anything.gif "Log anything quickly")
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### Log anything
 
-## Requirements
+LogMagic inspects the current line and tries to extract interesting information from it:
+- variable assignments
+- function parameters in a function definition
+- parameters in a function call
+- ignores literals and keywords such as strings, numbers, `true,` `false`, `null`, `undefined`, etc
+- falls back to printing `L<line number>` if it fails to parse anything meaningful
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### Cycle through log types
+
+Press the same keyboard shortcuts when already on a log statement to cycle through `log`,
+`info`, `warn` and `error`.
+
+![Log cycle](images/log-cycle.gif "Cycling through log levels is a breeze")
+
+### Up / Down support
+
+You can add the log statement on the previous or the next line. This is especially helpful in case of return
+statements.
+
+![Log upwards](images/log-up.gif "Log upwards!")
+
+### COMING SOON: Remove all log statements
+
+With one command you can remove all log statements from the current file.
+
+![Remove all log statements](images/remove-all.gif "Remove all log statements")
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- `logMagic.defaultLanguage`: Specifies the language to fall back to if LogMagic does not have a direct implementation for the currently active programming language
+- `logMagic.logFormats`: 
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release with support for
+- javascript
+- C#
