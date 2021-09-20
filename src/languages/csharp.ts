@@ -14,7 +14,7 @@ const tokenizerConfig: TokenizerConfig = {
     IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
     DIGIT: '1234567890',
     OPERATOR: '-+/*%=<>!|&^?:',
-    STRING_DELIM: "\"'\`",
+    STRING_DELIM: "\"'",
     SINGLE_LINE_COMMENT: '//',
     MULTI_LINE_COMMENT_START: '/*',
     MULTI_LINE_COMMENT_END: '*/',

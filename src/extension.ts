@@ -41,7 +41,7 @@ let magicItems: MagicItems = {}
  * @param languageId The language id
  * @returns The MagicItem for the language
  */
-async function getMagicItem(languageId: string): Promise<MagicItem> {
+async function getMagicItem(languageId: string, fallbackId: string = 'javascript'): Promise<MagicItem> {
 	if (!magicItems[languageId]) {
 		try {
 			const { parseSequence, tokenizerConfig, loggerConfig, getCaretPosition } = await import('./languages/' + languageId);
@@ -53,7 +53,7 @@ async function getMagicItem(languageId: string): Promise<MagicItem> {
 				getCaretPosition: getCaretPosition || createDefaultGetCaretPositionFn(loggerConfig)
 			};
 		} catch (e) {
-			return getMagicItem('csharp'); // Return default parser if no direct implementation for this language exists
+			return getMagicItem(fallbackId); // Return default parser if no direct implementation for this language exists
 		}
 	}
 	return magicItems[languageId];
@@ -161,8 +161,9 @@ function createLogMagicFn(logDirection: -1 | 1) {
 		const _ensureLogId = (parseResult: ParseResult): ParseResult => ensureLogId(parseResult, editor.selection.active.line);
 
 		const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('logMagic', editor.document);
-		const documentLanguage = editor.document.languageId || languageSettingToModuleName(configuration.get('defaultLanguage')) || 'javascript';
-		const magic = await getMagicItem(documentLanguage);
+		const defaultLanguage = languageSettingToModuleName(configuration.get('defaultLanguage')) || 'javascript';
+		const documentLanguage = editor.document.languageId || defaultLanguage;
+		const magic = await getMagicItem(documentLanguage, defaultLanguage);
 
 		// Fetch configuration overrides
 
