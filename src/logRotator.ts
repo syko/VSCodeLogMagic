@@ -83,10 +83,10 @@ const removeLogSuffix: ParseStep = (result: ParseResult): void => {
  * @param result The result to parse and modify in place
  */
 const detectLogId: ParseStep = (result: ParseResult): void => {
-	const firstNonWhiteSpaceToken = result.tokens.find((t: Token) => t.type !== TOKEN_WHITESPACE);
-	if (firstNonWhiteSpaceToken?.type !== TOKEN_STRING) return;
-	result.logId = popColon(firstNonWhiteSpaceToken);
-	result.tokens.splice(0, 1);
+	const i = result.tokens.findIndex((t: Token) => t.type !== TOKEN_WHITESPACE);
+	if (result.tokens[i]?.type !== TOKEN_STRING) return;
+	result.logId = result.tokens[i];
+	result.tokens.splice(0, i + 1);
 };
 
 /**
