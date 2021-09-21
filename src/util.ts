@@ -164,30 +164,9 @@ export function serializeToken (token: Token, quoteChar: string = '"'): string {
  * @param tokens The tokens whose values to combine
  * @returns A string of concatenated token values
  */
-export function serializeTokens (tokens: Token[]): string {
-	return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t), '');
+export function serializeTokens (tokens: Token[], quoteChar: string | undefined = undefined): string {
+	return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t, quoteChar), '');
 };
-
-/**
- * A function that appends a colon to the value of the token.
- * @param token The Token to append the colon to
- * @returns The same Token
- */
-export function appendColon(token: Token): Token {
-	token.value = token.value + ':';
-	return token;
-}
-
-/**
- * A function that removes a colon from the end of the value of the token if there is one.
- * @param token The Token to remove the colon from
- * @returns The same Token
- */
-export function popColon(token: Token): Token {
-	const v = '' + token.value
-	if (v[v.length - 1] === ':') token.value = v.substr(0, v.length - 1);
-	return token;
-}
 
 /**
 	* Ensure a ParseResult has a logId set. If not, generate one based on the current line number.

@@ -1,6 +1,6 @@
 import {ParseResult} from './parser';
 import {Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD} from './tokenizer';
-import {appendColon, quoteString, serializeTokens} from './util';
+import {quoteString, serializeTokens} from './util';
 
 /**
  * One log statement format configuration for a given language.
@@ -74,8 +74,8 @@ export function validateLoggerConfig(config: LoggerConfig): string | null {
  */
 function listLogItems(parseResult: ParseResult, format: LogFormat) {
 	return parseResult.logItems.map((logItem: Token[]) => {
-		const itemStr = serializeTokens(logItem); // TODO: SHORTEN KEY
-		const itemMatchesLogId = itemStr + ':' === '' + parseResult.logId?.value;
+		const itemStr = serializeTokens(logItem, format.quoteCharacter);
+		const itemMatchesLogId = itemStr === quoteString('' + parseResult.logId?.value || '', format.quoteCharacter);
 		const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
 		const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
 		return (shouldLogItemKey ? quoteString(itemStr + ':', format.quoteCharacter) + format.parameterSeparator : '')
@@ -96,7 +96,6 @@ function listLogItems(parseResult: ParseResult, format: LogFormat) {
 export function log(parseResult: ParseResult, format?: LogFormat) {
 	if(!format) format = parseResult.logFormat;
 	if (!format) throw new Error("LogMagic: log needs to be passed a LogFormat or have one on the ParseResult object");
-	if (parseResult.logId && parseResult.logItems.length) appendColon(parseResult.logId);
 	const params = [];
 	if (parseResult.logId) params.push(quoteString('' + parseResult.logId.value, format.quoteCharacter));
 	if (parseResult.logItems.length) params.push(listLogItems(parseResult, format));
