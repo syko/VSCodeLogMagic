@@ -16,6 +16,7 @@ type MagicItem = {
 	log: Logger;
 	rotateLog: LogRotator;
 	getCaretPosition: (logStatement: string) => number;
+	isLogStatement: (logStatement: string) => boolean;
 }
 /**
  * A magical item allowing us to output a log statement with a single keypress.
@@ -51,7 +52,8 @@ async function getMagicItem(languageId: string, fallbackId: string = 'javascript
 				parse: createParser(parseSequence),
 				log: createLogger(loggerConfig[0]),
 				rotateLog: createLogRotator(loggerConfig),
-				getCaretPosition: getCaretPosition || createDefaultGetCaretPositionFn(loggerConfig)
+				getCaretPosition: getCaretPosition || createDefaultGetCaretPositionFn(loggerConfig),
+				isLogStatement: createIsLogStatementFn(loggerConfig)
 			};
 		} catch (e) {
 			return getMagicItem(fallbackId); // Return default parser if no direct implementation for this language exists
@@ -95,18 +97,35 @@ function languageIdToModuleName(languageId: string): string {
  *
  * The default function puts the caret at the end of the log statement just before the log suffix.
  *
- * @param logStatement The  log statement where the caret goes
- * @returns A position index where the caret should be placed in the given log statement
+ * @param loggerConfig The loggerConfig that contains the possible log statement format for the line 
+ * @returns (logStatement: string): number - a function that returns an index where the caret should be positioned in the statement
  */
 const createDefaultGetCaretPositionFn = (loggerConfig: LoggerConfig) => {
 	return (logStatement: string): number => {
 		for (let i = 0; i < loggerConfig.length; i++) {
 			const logFormat: LogFormat = loggerConfig[i];
-			if(logStatement.endsWith(logFormat.logSuffix)) return logStatement.length - logFormat.logSuffix.length;
+			if (logStatement.endsWith(logFormat.logSuffix)) return logStatement.length - logFormat.logSuffix.length;
 		}
 		return logStatement.length - 1;
 	};
-}
+};
+
+/**
+ * A function for detecting whether a give line of code is a log statement according to the loggerConfig
+ * without tokenizing the line of code.
+ *
+ * @param loggerConfig The loggerConfig that contains the possible log statement format for the line
+ * @returns (logStatement: string): boolean
+ */
+const createIsLogStatementFn = (loggerConfig: LoggerConfig) => {
+	return (logStatement: string): boolean => {
+		logStatement = logStatement.trimLeft();
+		for (let i = 0; i < loggerConfig.length; i++) {
+			if (logStatement.startsWith(loggerConfig[i].logPrefix.trimLeft())) return true;
+		}
+		return false;
+	};
+};
 
 /**
  * A function for creating an indentation string from the indent size number.
@@ -309,9 +328,30 @@ function createLogMagicFn(logDirection: -1 | 1) {
 	}
 }
 
+async function removeAllLogStatements() {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) return;
+
+	const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('logMagic', editor.document);
+	const defaultLanguage = languageSettingToLanguageId(configuration.get('defaultLanguage')) || 'javascript';
+	const documentLanguage = editor.document.languageId || defaultLanguage;
+
+	const magic = await getMagicItem(documentLanguage, defaultLanguage);
+	
+	await editor.edit((editBuilder: vscode.TextEditorEdit): void => {
+		for (let i = 0; i < editor.document.lineCount; i++) {
+			const line = editor.document.lineAt(i);
+			if (magic.isLogStatement(line.text)) {
+				editBuilder.delete(line.rangeIncludingLineBreak);
+			}
+		}
+	});
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('logmagic.logDown', createLogMagicFn(1)));
 	context.subscriptions.push(vscode.commands.registerCommand('logmagic.logUp', createLogMagicFn(-1)));
+	context.subscriptions.push(vscode.commands.registerCommand('logmagic.removeAllLogStatements', removeAllLogStatements));
 }
 
 export function deactivate() {

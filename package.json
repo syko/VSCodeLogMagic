@@ -32,6 +32,10 @@
 			{
 				"command": "logmagic.logUp",
 				"title": "LogMagic: Log Upwards"
+			},
+			{
+				"command": "logmagic.removeAllLogStatements",
+				"title": "LogMagic: Remove All Log Statements From Current File"
 			}
 		],
 		"configuration": {
@@ -62,6 +66,12 @@
 			"command": "logmagic.logUp",
 			"key": "ctrl+k",
 			"mac": "cmd+k",
+			"when": "editorTextFocus && !editorReadonly"
+		  },
+		  {
+			"command": "logmagic.removeAllLogStatements",
+			"key": "ctrl+l",
+			"mac": "cmd+l",
 			"when": "editorTextFocus && !editorReadonly"
 		  }
 		]

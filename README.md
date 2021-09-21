@@ -37,7 +37,7 @@ In javascript for example you can cycle through `log`, `info`, `warn` and `error
 For each language you can configure your own log statements to cycle through. You can even wrap logged identifiers in
 your own decorator functions or append `.toString` for example.
 
-### COMING SOON: Remove All Log Statements
+### Remove All Log Statements
 
 With one command you can remove all log statements from the current file.
 
