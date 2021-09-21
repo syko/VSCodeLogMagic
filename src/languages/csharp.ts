@@ -68,7 +68,7 @@ const parseSequence: ParseSequence = [
     common.removeLambdas,
     common.getCombineConsecutiveTokensFn([TOKEN_KEYWORD], TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
     common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
-    common.removeFunctionNames,
+    common.removeFunctionCalls,
     common.removeLiterals,
     common.removePunctuation,
     common.removeOperators,

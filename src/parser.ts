@@ -148,11 +148,14 @@ export const common = {
 		for (let i = 0; i < tokens.length - 3; i++) {
 			const token: Token = tokens[i];
 			if (token.type !== TOKEN_IDENTIFIER) continue;
+
 			// Detect if there's a '[' after an identifier and if so, get the whole [...] block
 			if (tokens[i + 1].type !== TOKEN_PUNCTUATION || tokens[i + 1].value !== '[') continue;
 			const block: Token[] = getCodeBlockAt(tokens, i + 1);
+
 			// If code block does not end with ']', it's an incomplete block => ignore
 			if (!isCompleteCodeBlock(block)) continue;
+
 			token.value += serializeTokens(block);
 			// Remove the [...] part unless there's an identifier in there
 			if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) tokens.splice(i + 1, block.length);
@@ -208,9 +211,89 @@ export const common = {
 	 * Remove all function names from function calls (eg. 'doSomething(p1)' becomes '(p1)').
 	 * @param result The result to parse and modify in place.
 	 */
-	removeFunctionNames: (result: ParseResult): void => {
+	removeFunctionCalls: (result: ParseResult): void => {
 		const isParen = (t?: Token) => !!t && t.type == TOKEN_PUNCTUATION && t.value === '(';
 		result.tokens = result.tokens.filter((t: Token, i: number) => t.type !== TOKEN_IDENTIFIER || !isParen(result.tokens[i + 1]));
+	},
+
+	/**
+	 * Find a variable that is assigned an incomplete lambda declaration and remove it.
+	 * This looks for a '=' that is not in a codeblock, then looks for an incomplete lambda definition
+	 * after it and if it finds something, removes everything that comes before the '='.
+	 *
+	 * @param result The result to parse and modify in place.
+	 */
+	removeLambdaDeclarationAssignees: (result: ParseResult): void => {
+		const tokens = result.tokens;
+
+		const findNextLambdaOperatorIndex = (tokens: Token[], fromIndex: number) => {
+			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
+		};
+
+		for (let i = 0; i < tokens.length; i++) {
+			const token = tokens[i];
+
+			// Skip code blocks
+			const codeBlock = getCodeBlockAt(tokens, i);
+			if (isCompleteCodeBlock(codeBlock)) i += codeBlock.length - 1;
+			if (token.type !== TOKEN_OPERATOR || token.value !== '=') continue;
+
+			// '=' found at position i
+			// Find an incomplete lambda
+			for (let j = i + 1; j < tokens.length; j++) {
+				const operatorIndex = findNextLambdaOperatorIndex(tokens, j);
+				if (operatorIndex === -1 || operatorIndex === tokens.length - 1) return;
+				if (tokens[operatorIndex + 1].type !== TOKEN_PUNCTUATION || tokens[operatorIndex + 1].value !== '{') j = operatorIndex;
+				else if (!isCompleteCodeBlock(getCodeBlockAt(tokens, operatorIndex + 1))) {
+					tokens.splice(0, i);
+					return;
+				}
+			}
+
+		}
+	},
+
+	/**
+	 * Find a variable that is assigned function declaration and remove it.
+	 * This looks for a '=' that is not in a codeblock, then looks for a `function(...) {` declaration
+	 * after it and if it finds something, removes everything that comes before the '='.
+	 *
+	 * @param result The result to parse and modify in place.
+	 */
+	removeFunctionDeclarationAssignees: (result: ParseResult): void => {
+		const tokens = result.tokens;
+
+		const findNextFunctionKeywordIndex = (tokens: Token[], fromIndex: number) => {
+			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_KEYWORD && t.value === 'function')
+		};
+
+		for (let i = 0; i < tokens.length; i++) {
+			const token = tokens[i];
+
+			// Skip code blocks
+			const codeBlock = getCodeBlockAt(tokens, i);
+			if (isCompleteCodeBlock(codeBlock)) i += codeBlock.length - 1;
+			if (token.type !== TOKEN_OPERATOR || token.value !== '=') continue;
+
+			// '=' found at position i
+			// Find a function assignment
+			for (let j = i + 1; j < tokens.length; j++) {
+				const keywordIndex = findNextFunctionKeywordIndex(tokens, j);
+				if (keywordIndex === -1 || keywordIndex >= tokens.length - 3) return;
+
+				// Expect a parameter block following the keyword
+				const parameterBlock = getCodeBlockAt(tokens, keywordIndex + 1);
+				const openingBracePosition = keywordIndex + parameterBlock.length + 1
+				if (openingBracePosition >= tokens.length) return;
+
+				if (tokens[openingBracePosition].type !== TOKEN_PUNCTUATION || tokens[openingBracePosition].value !== '{') return;
+				if (!isCompleteCodeBlock(getCodeBlockAt(tokens, openingBracePosition))) {
+					tokens.splice(0, i);
+					return;
+				}
+			}
+
+		}
 	},
 
 	/**
