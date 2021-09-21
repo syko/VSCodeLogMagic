@@ -23,7 +23,7 @@ statements.
 
 Press the same keyboard shortcuts when already on a log statement to cycle through different kinds of log statements.
 In javascript for example you can cycle through `log`, `info`, `warn` and `error` levels. In C# you can cycle through
-`System.Write`, `System.Write` and unity's `Debug.Log` options.
+`System.WriteLine`, `System.Write` and unity's `Debug.Log` options.
 
 ![Log cycle](images/log-cycle.gif "Cycling through log levels is a breeze")
 
