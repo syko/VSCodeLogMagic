@@ -1,9 +1,9 @@
 {
-  "name": "logmagic",
+	"name": "logmagic",
 	"displayName": "LogMagic",
 	"description": "Easily print variables and parameters with keyboard shortcuts for quick debugging.",
-	"version": "1.0.0",
-	"repository": "https://github.com/syko/VSCodeLogMagic", 
+	"version": "1.0.1",
+	"repository": "https://github.com/syko/VSCodeLogMagic",
 	"publisher": "syko",
 	"license": "See LICENSE",
 	"engines": {
@@ -20,7 +20,7 @@
 		"code generation"
 	],
 	"activationEvents": [
-        "onCommand:logmagic.logDown"
+		"onCommand:logmagic.logDown"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -45,10 +45,13 @@
 					"type": "string",
 					"scope": "language-overridable",
 					"description": "The default language to use when the active language is not directly supported by LogMagic.",
-					"enum": ["javascript", "C#"],
+					"enum": [
+						"javascript",
+						"C#"
+					],
 					"default": "javascript"
 				},
-				"logMagic.logFormats": { 
+				"logMagic.logFormats": {
 					"type": "array",
 					"scope": "language-overridable",
 					"description": "Configure one or more log statements to generate & rotate between.\n Can be configured on any setting level, including folders.\n Each statement specification is an object like\n{\n\"logPrefix\": \"A log-function call including the opening parenthesesis print(\",\n\t\"parameterSeparator\": \"A parameter separator, like a comma\",\n\t\"identifierPrefix\": \"Anything to prefix identifiers with\",\n\t\"identifierSuffix\": \"Anything to suffix identifiers with, like .toString()\",\n\t\"logSuffix\": \"An ending suffix to complete the log statement, like );\",\n\t\"quoteCharacter\": \"The quote character to use when logging strings\"\n}"
@@ -56,22 +59,22 @@
 			}
 		},
 		"keybindings": [
-		  {
-			"command": "logmagic.logDown",
-			"key": "alt+j",
-			"when": "editorTextFocus && !editorReadonly"
-		  },
-		  {
-			"command": "logmagic.logUp",
-			"key": "alt+k",
-			"when": "editorTextFocus && !editorReadonly"
-		  },
-		  {
-			"command": "logmagic.removeAllLogStatements",
-			"key": "ctrl+alt+j",
-			"mac": "cmd+alt+j",
-			"when": "editorTextFocus && !editorReadonly"
-		  }
+			{
+				"command": "logmagic.logDown",
+				"key": "alt+j",
+				"when": "editorTextFocus && !editorReadonly"
+			},
+			{
+				"command": "logmagic.logUp",
+				"key": "alt+k",
+				"when": "editorTextFocus && !editorReadonly"
+			},
+			{
+				"command": "logmagic.removeAllLogStatements",
+				"key": "ctrl+alt+j",
+				"mac": "cmd+alt+j",
+				"when": "editorTextFocus && !editorReadonly"
+			}
 		]
 	},
 	"scripts": {
