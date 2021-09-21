@@ -58,20 +58,18 @@
 		"keybindings": [
 		  {
 			"command": "logmagic.logDown",
-			"key": "ctrl+j",
-			"mac": "cmd+j",
+			"key": "alt+j",
 			"when": "editorTextFocus && !editorReadonly"
 		  },
 		  {
 			"command": "logmagic.logUp",
-			"key": "ctrl+k",
-			"mac": "cmd+k",
+			"key": "alt+k",
 			"when": "editorTextFocus && !editorReadonly"
 		  },
 		  {
 			"command": "logmagic.removeAllLogStatements",
-			"key": "ctrl+l",
-			"mac": "cmd+l",
+			"key": "ctrl+alt+j",
+			"mac": "cmd+alt+j",
 			"when": "editorTextFocus && !editorReadonly"
 		  }
 		]
