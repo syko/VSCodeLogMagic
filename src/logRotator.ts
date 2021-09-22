@@ -1,4 +1,4 @@
-import {Token, TokenType, TOKEN_IDENTIFIER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING, TOKEN_WHITESPACE} from './tokenizer';
+import {Token, TokenType, TOKEN_STRING, TOKEN_WHITESPACE} from './tokenizer';
 import {ParseError, ParseResult, ParseSequence, ParseStep, ParseStepFactory} from './parser';
 import {log, LogFormat, LoggerConfig} from './logger';
 import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, serializeToken} from './util';
@@ -100,11 +100,13 @@ const detectLogId: ParseStep = (result: ParseResult): void => {
  */
 const removeIdentifierStrings: ParseStep = (result: ParseResult): void => {
 	const tokens = result.tokens;
-	for (let i = 0; i < tokens.length; i++) {
+	for (let i = 0; i < tokens.length - 2; i++) {
 		const token = tokens[i];
-		if (token.type !== TOKEN_STRING) continue;
-		if (!tokens.find((t: Token, j: number) => j > i && t.type === TOKEN_IDENTIFIER && token.value === t.value + ':')) continue;
-		tokens.splice(i, 1);
+		if (token.type !== TOKEN_STRING || !('' + token.value).endsWith(':')) continue;
+		const identifierStr = ('' + token.value).substr(0, ('' + token.value).length - 1);
+		const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, result.logFormat!, i + 1);
+		const identifierTokens = getMatchingTokens(tokens, identifierStr, result.logFormat!, i + separatorTokens.length + 1);
+		if(identifierTokens.length) tokens.splice(i, 1);
 	}
 };
 
@@ -225,8 +227,6 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
         removeIdentifierStrings,
         collectLogItems,
         removeIdentifierPrefixesAndSuffixes,
-        getRemoveTokensNotInCodeBlocksFn(TOKEN_PUNCTUATION),
-        getRemoveTokensNotInCodeBlocksFn(TOKEN_OPERATOR),
         removeEmptyLogItems,
     ];
 
