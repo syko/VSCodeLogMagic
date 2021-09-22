@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.1] - 2021-09-22
+
+### Fixed
+- Escaping quotation marks in strings when outputting log statements now works correctly.
+- Multi-token log items aand log items containing punctuation are now preserved correctly when rotating log statements.
+- Fixed extension activation events. Logging down or removing all log statements now works without having to log downwards first.
+
 ## [1.1.0] - 2021-09-21
 
 ### Added
