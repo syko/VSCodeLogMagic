@@ -20,7 +20,9 @@
 		"code generation"
 	],
 	"activationEvents": [
-		"onCommand:logmagic.logDown"
+		"onCommand:logmagic.logDown",
+		"onCommand:logmagic.logUp",
+		"onCommand:logmagic.removeAllLogStatements"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
