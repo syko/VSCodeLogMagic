@@ -6,6 +6,7 @@
 	"repository": "https://github.com/syko/VSCodeLogMagic",
 	"publisher": "syko",
 	"license": "See LICENSE",
+	"icon": "images/logo.png",
 	"engines": {
 		"vscode": "^1.49.3"
 	},
