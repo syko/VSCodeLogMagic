@@ -145,7 +145,8 @@ export function getExpressionAt (tokens: Token[], startIndex: number, direction:
  * @returns The quoted string
  */
 export function quoteString (str: string, quoteChar: string = '"'): string {
-	return `${quoteChar}${str.replace(`${quoteChar}`, `\\${quoteChar}`)}${quoteChar}`
+	const regex = new RegExp(quoteChar, 'g');
+	return quoteChar + str.replace(regex, `\\${quoteChar}`) + quoteChar;
 };
 
 /**
