@@ -31,7 +31,7 @@ const tokenizerConfig: TokenizerConfig = {
         'async', 'await', 'by', 'descending', 'dynamic', 'equals', 'from', 'get', 'global',
         'group', 'init', 'into', 'join', 'let', 'managed', 'nameof', 'nint', 'not',
         'notnull', 'nuint', 'on', 'or', 'orderby', 'partial', 'partial', 'record', 'remove',
-        'select', 'set', 'unmanaged', 'unmanaged', 'value', 'var', 'when', 'where', 'where',
+        'select', 'set', 'unmanaged', 'unmanaged', /*'value', */'var', 'when', 'where', 'where',
         'with', 'yield',
     ]
 };
