@@ -1,5 +1,5 @@
 import {ParseResult} from './parser';
-import {Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD} from './tokenizer';
+import {Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_STRING} from './tokenizer';
 import {quoteString, serializeTokens} from './util';
 
 /**
@@ -19,6 +19,7 @@ export type LogFormat = {
 	identifierSuffix: string;
 	logSuffix: string;
 	quoteCharacter: string;
+	insertSpaces: boolean;
 };
 
 /**
@@ -45,6 +46,7 @@ export function validateLogFormat(format: LogFormat): string | null {
 	if(typeof format.identifierSuffix !== 'string') return 'identifierSuffix not found or is not a string';
 	if(typeof format.logSuffix !== 'string') return 'logSuffix not found or is not a string';
 	if(typeof format.quoteCharacter !== 'string') return 'quoteCharacter not found or is not a string';
+	if(typeof format.insertSpaces !== 'boolean') return 'insertSpaces not found or is not a boolean';
 	return null;
 }
 
@@ -63,6 +65,22 @@ export function validateLoggerConfig(config: LoggerConfig): string | null {
 }
 
 /**
+ * Take a serialized log item and return a log item key to be logged right before it.
+ * It prepends and appends spaces for extra padding as necessary according to the LogFormat
+ * and whether this is the first log item logged or not.
+ * 
+ * @param serializedItemValue The log item's serialised value as a string
+ * @param isFirst A boolean indicating whether this is the first item logged
+ * @param format The current LogFormat
+ * @returns A serialized log item key string
+ */
+function createLogItemKey(serializedItemValue: string, isFirst: boolean, format: LogFormat) {
+	const spacePrefix = format.insertSpaces && !isFirst ? ' ' : '';
+	const spaceSuffix = format.insertSpaces? ' ' : '';
+	return quoteString(spacePrefix + serializedItemValue + ':' + spaceSuffix, format.quoteCharacter);
+}
+
+/**
  * A function for building the list of tokens for logging based on the given LoggerConfig.
  * Returns a string such as '"someVar:", someVar, "otherVar:", otherVar' or '"someVar:" + someVar.toString() + "otherVar:" + otherVar.toString()'
  * depending on the LoggerConfig. It does not produce a '"someVar:"' string part for an identifier if it's identical to the logId as that's
@@ -73,14 +91,14 @@ export function validateLoggerConfig(config: LoggerConfig): string | null {
  * @returns a string listing the parsed identifiers for logging according to the logger syntax
  */
 function listLogItems(parseResult: ParseResult, format: LogFormat) {
-	return parseResult.logItems.map((logItem: Token[]) => {
-		const itemStr = serializeTokens(logItem, format.quoteCharacter);
-		const itemMatchesLogId = itemStr === quoteString('' + parseResult.logId?.value || '', format.quoteCharacter);
+	return parseResult.logItems.map((logItem: Token[], i: number) => {
+		const serializedItemValue = serializeTokens(logItem, format.quoteCharacter);
+		const itemMatchesLogId = serializedItemValue === parseResult.logId?.value;
 		const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
 		const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
-		return (shouldLogItemKey ? quoteString(itemStr + ':', format.quoteCharacter) + format.parameterSeparator : '')
+		return (shouldLogItemKey ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
 				+ format.identifierPrefix
-				+ itemStr
+				+ serializedItemValue
 				+ format.identifierSuffix
 	}).join(format.parameterSeparator)
 }

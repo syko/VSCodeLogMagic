@@ -53,7 +53,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '\''
+        quoteCharacter: '\'',
+        insertSpaces: false
     },
     {
         logPrefix: 'console.info(',
@@ -61,7 +62,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '\''
+        quoteCharacter: '\'',
+        insertSpaces: false
     },
     {
         logPrefix: 'console.warn(',
@@ -69,7 +71,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '\''
+        quoteCharacter: '\'',
+        insertSpaces: false
     },
     {
         logPrefix: 'console.error(',
@@ -77,7 +80,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '\''
+        quoteCharacter: '\'',
+        insertSpaces: false
     }
 ];
 

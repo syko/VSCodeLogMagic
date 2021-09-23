@@ -90,20 +90,18 @@ const detectLogId: ParseStep = (result: ParseResult): void => {
 };
 
 /**
- * A ParserStep function that looks for "log item keys" and removes the matching tokens.
+ * A ParserStep function that looks for log item keys and removes the matching tokens.
  * A "log item key" is a string version of a series of tokens with a colon appended to it and is
  * logged right before the corresponding log item.
  * 
- * TODO: This actually just looks for a single identifier without the colon. Need to allow multiple tokens and support shortening of key.
- *
  * @param result The result to parse and modify in place
  */
-const removeIdentifierStrings: ParseStep = (result: ParseResult): void => {
+const removeLogItemKeys: ParseStep = (result: ParseResult): void => {
 	const tokens = result.tokens;
 	for (let i = 0; i < tokens.length - 2; i++) {
 		const token = tokens[i];
-		if (token.type !== TOKEN_STRING || !('' + token.value).endsWith(':')) continue;
-		const identifierStr = ('' + token.value).substr(0, ('' + token.value).length - 1);
+		if (token.type !== TOKEN_STRING || !('' + token.value).trimRight().endsWith(':')) continue;
+		const identifierStr = ('' + token.value).substring(0, ('' + token.value).lastIndexOf(':')).trimLeft();
 		const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, result.logFormat!, i + 1);
 		const identifierTokens = getMatchingTokens(tokens, identifierStr, result.logFormat!, i + separatorTokens.length + 1);
 		if(identifierTokens.length) tokens.splice(i, 1);
@@ -224,7 +222,7 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
         getDetectLogFormatFn(config),
         removeLogSuffix,
         detectLogId,
-        removeIdentifierStrings,
+        removeLogItemKeys,
         collectLogItems,
         removeIdentifierPrefixesAndSuffixes,
         removeEmptyLogItems,

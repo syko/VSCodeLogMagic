@@ -84,7 +84,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '"'
+        quoteCharacter: '"',
+        insertSpaces: true
     },
     {
         logPrefix: 'Console.Write(',
@@ -92,7 +93,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '"'
+        quoteCharacter: '"',
+        insertSpaces: true
     },
     {
         logPrefix: 'Debug.Log(',
@@ -100,7 +102,8 @@ const loggerConfig: LoggerConfig = [
         identifierPrefix: '',
         identifierSuffix: '',
         logSuffix: ');',
-        quoteCharacter: '"'
+        quoteCharacter: '"',
+        insertSpaces: true
     }
 ];
 

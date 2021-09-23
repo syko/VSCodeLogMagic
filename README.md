@@ -59,6 +59,7 @@ This extension contributes the following settings:
   - `identifierSuffix`: Anything to suffix identifiers with. You can call _.toString()_ on each identifier for example.
   - `logSuffix`: An ending suffix to complete the log statement, like _);_. The caret is placed right before the suffix by default.
   - `quoteCharacter`: The quote character to use when outputting strings.
+  - `insertSpaces`: A boolean indicating whether logged strings should be wrapped in spaces for padding.
 
 ## Release Notes
 
