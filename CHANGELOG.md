@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.2.0] - 2021-09-23
+
+### Added
+- Added an `insertSpaces` attribute to log formats which controls whether logged strings are padded with spaces for logging
+- C# now uses `insertSpaces: true` so in the log output items are now nicely separated by a single space.
+- Added logo
+
+### Fixed
+- Removed `value` as a keyword from csharp as it is a popular variable name and C# allows for it. More often than not we probably want to log it.
+
 ## [1.1.1] - 2021-09-22
 
 ### Fixed
