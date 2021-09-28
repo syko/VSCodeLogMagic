@@ -1,6 +1,6 @@
 import {LoggerConfig} from "../logger";
 import {ParseSequence, common} from "../parser";
-import {TokenizerConfig, TOKEN_KEYWORD} from "../tokenizer";
+import {TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD} from "../tokenizer";
 
 const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
@@ -29,10 +29,10 @@ const tokenizerConfig: TokenizerConfig = {
 const parseSequence: ParseSequence = [
     common.removeWhitespace,
     common.removeComments,
-    common.getCombineIdentifierChainsFn(IDENTIFIER_CHAIN_CHARS),
+    common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
     common.combineBracketNotation,
     common.removeLambdas,
-    common.getCombineConsecutiveTokensFn([TOKEN_KEYWORD], TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
+    common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
     common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
     common.removeFunctionDeclarationAssignees,
     common.removeLambdaDeclarationAssignees,

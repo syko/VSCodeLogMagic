@@ -69,43 +69,63 @@ export class ParseError extends Error {
 export const common = {
 
 	/**
-	 * Return a ParseStep function that combines chained identifiers into one
-	 * (eg. somePackage.someNamespace.someVariable becomes a single identifier token)
+	 * Return a ParseStep function that chains tokens of a given type and combines them into one.
+	 * A list of allowed separators, prefix and suffixes can be provided which will also be combined.
+	 * Separators have to be single tokens and between 2 tokens of the correct type.
+	 *
+	 * eg. With this you can combine chained identifiers like somePackage.someNamespace.someVariable into a single identifier token.
 	 *
 	 * @param chainingCharacters An array of characters that can chain identifiers together (probably ['.'] in most cases)
 	 * @returns A ParseStep function
 	 */
-	getCombineIdentifierChainsFn: (chainingCharacters: string[]): ParseStep => {
+	getCombineConsecutiveTokensOfTypeFn: (typesToChain: TokenType[], newType: TokenType, allowedSeparators: string[], allowedPrefixes: string[] = [], allowedSuffixes: string[] = []): ParseStep => {
 		return (result: ParseResult): void => {
 			const tokens = result.tokens;
-			const newTokens: Token[] = [];
-			let chain: Token[] | null = null;
-			let seenDot = false;
 
 			// n%2 fn in this array returns whether the given token is good for being the next link in the chain
 			const isChainLink: {(t: Token): boolean}[] = [
-				(t: Token) => t.type === TOKEN_IDENTIFIER,
-				(t: Token) => t.type === TOKEN_PUNCTUATION && chainingCharacters.includes('' + t.value)
+				(t: Token) => typesToChain.includes(t.type),
+				(t: Token) => allowedSeparators.includes(serializeToken(t)) // TODO: quoteCharacter
 			];
 
 			for (let i = 0; i < tokens.length; i++) {
-				const token = tokens[i];
-				if (token.type === TOKEN_IDENTIFIER) {
-					// Identifier detected, accumulate a chain
-					chain = [];
-					for (let j = i; j < tokens.length; j++) {
-						if (isChainLink[chain.length % 2](tokens[j])) chain.push(tokens[j]);
-						else break;
-					}
-					if (isChainLink[1](chain[chain.length - 1])) chain.pop(); // Identifier can't end with a dot
-					newTokens.push({type: TOKEN_IDENTIFIER, value: serializeTokens(chain)});
-					i += chain.length - 1;
-				} else {
-					newTokens.push(token);
-				}
-			}
+				
+				// Find matching prefix if any
 
-			result.tokens = newTokens;
+				let prefixTokens: Token[] = [];
+				for (let j = 0; j < allowedPrefixes.length; j++) {
+					const prefix = allowedPrefixes[j];
+					prefixTokens = getMatchingTokens(tokens, prefix, i); // TODO: quoteCharacter
+					if (prefixTokens.length) break;
+				}
+
+				// Chain tokens after the prefix
+
+				let tokenChain: Token[] = [];
+
+				for (let j = i + prefixTokens.length; j < tokens.length; j++) {
+					if (isChainLink[tokenChain.length % 2](tokens[j])) tokenChain.push(tokens[j]);
+					else break;
+				}
+				if (tokenChain.length && isChainLink[1](tokenChain[tokenChain.length - 1])) tokenChain.pop(); // Chain can't end with a separator
+
+				// Find matching suffix if any
+
+				let suffixTokens: Token[] = [];
+				for (let j = 0; j < allowedSuffixes.length; j++) {
+					const suffix = allowedSuffixes[j];
+					suffixTokens = getMatchingTokens(tokens, suffix, i + prefixTokens.length + tokenChain.length); // TODO: quoteCharacter
+					if (suffixTokens.length) break;
+				}
+				
+				// If we found anything beyond a prefix and/or suffix, combine it all
+
+				if (!tokenChain.length) continue;
+
+				tokens[i].type = newType; [].concat()
+				tokens[i].value = serializeTokens(prefixTokens.concat(tokenChain).concat(suffixTokens));
+				tokens.splice(i + 1, prefixTokens.length + tokenChain.length + suffixTokens.length - 1);
+			}
 		}
 	},
 
@@ -119,19 +139,21 @@ export const common = {
 	 * @param separator An optional separator string to use when joining token values
 	 * @returns A ParseStep function for combining multi-word keywords.
 	 */
-	getCombineConsecutiveTokensFn: (types: TokenType[], newType: TokenType, valuesToCombine: string[][], separator: string = ''): ParseStep => {
+	getCombineConsecutiveTokensOfValueFn: (newType: TokenType, valuesToCombine: string[][], separator: string = ''): ParseStep => {
 		return (result: ParseResult): void => {
 			const tokens = result.tokens;
 			for (let i = 0; i < tokens.length; i++) {
 				// match will be an item from valuesToCombine matches the tokens at current position
 				const match: string[] | undefined = valuesToCombine.find((toCombine: string[]) => toCombine.every((v, j) => {
-					return types.includes(tokens[i + j]?.type) && tokens[i + j]?.value === v;
+					return !!tokens[i + j] && serializeToken(tokens[i + j]) === v; // TODO: quoteCharacter
 				}));
-				if (match) {
-					tokens[i].type = newType;
-					tokens[i].value = match.join(separator);
-					tokens.splice(i + 1, match.length - 1);
-				}
+				if (!match) continue
+				tokens[i].type = newType;
+				tokens[i].value = match.join(separator);
+				tokens.splice(i + 1, match.length - 1);
+			}
+		}
+	},
 
 	getCombineMatchingTokens: (newType: TokenType, regex: RegExp, separator: string = ''): ParseStep => {
 		return (result: ParseResult): void => {
