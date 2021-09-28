@@ -1,10 +1,12 @@
 import {LoggerConfig} from "../logger";
 import {ParseSequence, common} from "../parser";
-import {TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD} from "../tokenizer";
+import {TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER} from "../tokenizer";
 
 const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
 const IDENTIFIER_CHAIN_CHARS = ['.']
+const NUMBER_REGEX = /^-?(0b|0o)?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(e-?[0-9]+(_[0-9]+)*)?(n)?/i
+const HEX_NUMBER_REGEX = /^-?(0x)[0-9a-f]+(_[0-9a-f]+)*(n)?/i
 
 const tokenizerConfig: TokenizerConfig = {
     PUNCTUATION: ',.;\\[]{}@#()',
@@ -22,7 +24,7 @@ const tokenizerConfig: TokenizerConfig = {
         'typeof', 'var', 'void', 'while', 'with', 'yield', 'implements', 'interface', 'let',
         'package', 'private', 'protected', 'public', 'static', 'yield', 'abstract', 'boolean', 'byte',
         'char', 'double', 'final', 'float', 'goto', 'int', 'long', 'native', 'short',
-        'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false ',
+        'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false ', 'Infinity'
     ]
 };
 
@@ -31,6 +33,8 @@ const parseSequence: ParseSequence = [
     common.removeComments,
     common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
     common.combineBracketNotation,
+    common.getCombineMatchingTokens(TOKEN_NUMBER, HEX_NUMBER_REGEX),
+    common.getCombineMatchingTokens(TOKEN_NUMBER, NUMBER_REGEX),
     common.removeLambdas,
     common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
     common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
