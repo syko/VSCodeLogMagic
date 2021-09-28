@@ -11,7 +11,7 @@ import {
 	TOKEN_STRING,
 	TOKEN_WHITESPACE
 } from "./tokenizer";
-import {serializeTokens, getCodeBlockAt, getExpressionAt, isCompleteCodeBlock} from './util';
+import {serializeTokens, getCodeBlockAt, getExpressionAt, isCompleteCodeBlock, getMatchingTokens, serializeToken, getMatchingTokensRe} from './util';
 
 /**
  * A parse result is an objecting containing all the current parsed info at any point in the parse process.
@@ -132,6 +132,16 @@ export const common = {
 					tokens[i].value = match.join(separator);
 					tokens.splice(i + 1, match.length - 1);
 				}
+
+	getCombineMatchingTokens: (newType: TokenType, regex: RegExp, separator: string = ''): ParseStep => {
+		return (result: ParseResult): void => {
+			const tokens = result.tokens;
+			for (let i = 0; i < tokens.length; i++) {
+				const match = getMatchingTokensRe(tokens, regex, i); // TODO: quoteCharacter
+				if (!match.length) continue;
+				tokens[i].type = newType;
+				tokens[i].value = match.join(separator);
+				tokens.splice(i + 1, match.length - 1);
 			}
 		}
 	},

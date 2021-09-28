@@ -1,7 +1,7 @@
 import {Token, TokenType, TOKEN_STRING, TOKEN_WHITESPACE} from './tokenizer';
 import {ParseError, ParseResult, ParseSequence, ParseStep, ParseStepFactory} from './parser';
 import {log, LogFormat, LoggerConfig} from './logger';
-import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, serializeToken} from './util';
+import {getCodeBlockAt, getMatchingTokens, isCompleteCodeBlock, PARENS_EXT, serializeToken} from './util';
 
 /**
  * A LogRotator is a function that takes a tokenized log statement, rotates the logPrefixes and logSuffixes and returns
@@ -16,26 +16,6 @@ import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, serializeToken} from '.
  * everything that is logged so that all kinds of log statements can be rotated.
  */
 export type LogRotator = (tokens: Token[], direction: 1 | -1) => string | null;
-
-/**
- * Walk the tokens at a given index in a given direction and try to match their combined values against the given string.
- * This is like a startsWith function for tokens that supports matching at any index and in both directions.
- * 
- * @param tokens The tokens to walkt
- * @param str The string to match the tokens against
- * @param logFormat The active LogFormat that defines how some tokens are serialized for matching
- * @param index From what index to start matching tokens
- * @param direction The direction in which to walk the tokens
- * @returns An array of tokens that match the given string or an empty array if no match
- */
-function getMatchingTokens(tokens: Token[], str: string, logFormat: LogFormat, index: number = 0, direction: -1 | 1 = 1): Token[] {
-	let serializedStr: string = '';
-	for (let i = index; i >= 0 && i < tokens.length; i += direction) {
-		serializedStr = direction === 1 ? serializedStr + serializeToken(tokens[i], logFormat.quoteCharacter): serializeToken(tokens[i], logFormat.quoteCharacter) + serializedStr;
-		if (serializedStr === str) return tokens.slice(Math.min(index, i), Math.max(i + 1, index + 1));
-	}
-	return [];
-}
 
 /**
  * Return a ParserStep function that matches each LogFormat's logPrefix against the beginning of the log statement until 
@@ -53,7 +33,7 @@ const getDetectLogFormatFn: ParseStepFactory = (config: LoggerConfig): ParseStep
 		for (let i = 0; i < config.length; i++) {
 			const format: LogFormat = config[i];
 
-			const matchingTokens = getMatchingTokens(result.tokens, format.logPrefix, format);
+			const matchingTokens = getMatchingTokens(result.tokens, format.logPrefix, 0, 1, format.quoteCharacter);
 			if (!matchingTokens.length) continue;
 
 			result.logFormat = format;
@@ -71,7 +51,7 @@ const getDetectLogFormatFn: ParseStepFactory = (config: LoggerConfig): ParseStep
  * @param result The result to parse and modify in place
  */
 const removeLogSuffix: ParseStep = (result: ParseResult): void => {
-	const matchingTokens = getMatchingTokens(result.tokens, result.logFormat!.logSuffix || '', result.logFormat!, result.tokens.length - 1, -1);
+	const matchingTokens = getMatchingTokens(result.tokens, result.logFormat!.logSuffix || '',result.tokens.length - 1, -1, result.logFormat!.quoteCharacter);
 	if (!matchingTokens.length) return;
 	result.tokens.splice(result.tokens.length - matchingTokens.length);
 };
@@ -102,8 +82,8 @@ const removeLogItemKeys: ParseStep = (result: ParseResult): void => {
 		const token = tokens[i];
 		if (token.type !== TOKEN_STRING || !('' + token.value).trimRight().endsWith(':')) continue;
 		const identifierStr = ('' + token.value).substring(0, ('' + token.value).lastIndexOf(':')).trimLeft();
-		const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, result.logFormat!, i + 1);
-		const identifierTokens = getMatchingTokens(tokens, identifierStr, result.logFormat!, i + separatorTokens.length + 1);
+		const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, i + 1, 1, result.logFormat!.quoteCharacter);
+		const identifierTokens = getMatchingTokens(tokens, identifierStr, i + separatorTokens.length + 1, 1, result.logFormat!.quoteCharacter);
 		if(identifierTokens.length) tokens.splice(i, 1);
 	}
 };
@@ -120,7 +100,7 @@ function* getTokensUntilSeparator (tokens: Token[], separator: string, logFormat
 	let accumulator: Token[] = []; // Current token block until separator found
 	for (let i = 0; i < tokens.length; i++) {
 		// If separator at current index, yield accumulated tokens and skip over it
-		const separatorTokens: Token[] = getMatchingTokens(tokens, separator, logFormat, i);
+		const separatorTokens: Token[] = getMatchingTokens(tokens, separator, i, 1, logFormat.quoteCharacter);
 		if (separatorTokens.length) {
 			yield accumulator;
 			accumulator = [];
@@ -195,8 +175,8 @@ const removeIdentifierPrefixesAndSuffixes: ParseStep = (result: ParseResult): vo
 	const suffix = result.logFormat?.identifierSuffix;
 	for (let i = 0; i < result.logItems.length; i++) {
 		const logItem: Token[] = result.logItems[i];
-		const prefixTokens: Token[] = prefix ? getMatchingTokens(logItem, prefix, result.logFormat!) : [];
-		const suffixTokens: Token[] = suffix ? getMatchingTokens(logItem, suffix, result.logFormat!, logItem.length - 1, -1) : [];
+		const prefixTokens: Token[] = prefix ? getMatchingTokens(logItem, prefix, 0, 1, result.logFormat!.quoteCharacter) : [];
+		const suffixTokens: Token[] = suffix ? getMatchingTokens(logItem, suffix, logItem.length - 1, -1, result.logFormat!.quoteCharacter) : [];
 		if (prefixTokens.length && (suffixTokens.length || !suffix)) logItem.splice(0, prefixTokens.length);
 		if (suffixTokens.length && (prefixTokens.length || !prefix)) logItem.splice(logItem.length - suffixTokens.length);
 	}

@@ -31,7 +31,6 @@ export type TokenizerConfig = {
 	PUNCTUATION: string;
 	IDENTIFIER_START: string;
     IDENTIFIER: string;
-    DIGIT: string;
     OPERATOR: string;
     STRING_DELIM: string;
     SINGLE_LINE_COMMENT: string;
@@ -62,7 +61,7 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
     }
 
     function isDigit(char: string) {
-        return config.DIGIT.includes(char)
+        return '1234567890'.includes(char)
     }
 
     function isPunctuation(char: string) {
@@ -150,16 +149,16 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
     }
 
     /**
-     * Read a number (integer/decimal) at the current caret position in the input string and move the internal caret forward.
+     * Read a [dumb] number (int / array of digits) at the current caret position in the input string and move the internal caret forward.
+     * The number is read as-is and kept as a string to avoid messing up octal notation and such.
+     * Floats, decimals, scientific notation, etc. are later parsed as a combination of tokens in the parser.
+     *
      * @param input The input string to read
      * @returns A number Token
      */
     function readNumber(input: string): Token {
-        const str = readWhile(input, (char: string) => {
-            let seenDot = false;
-            return isDigit(char) || (!seenDot && char === '.' && (seenDot = true));
-        })
-        return { type: TOKEN_NUMBER, value: parseFloat(str) }
+        const str = readWhile(input, isDigit)
+        return { type: TOKEN_NUMBER, value: str }
     }
 
     /**

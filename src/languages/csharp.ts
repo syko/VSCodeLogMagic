@@ -1,18 +1,19 @@
 import {LoggerConfig} from "../logger";
 import {ParseResult, ParseSequence, ParseStep, common} from "../parser";
-import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_OPERATOR, TOKEN_PUNCTUATION} from "../tokenizer";
+import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION} from "../tokenizer";
 import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT} from "../util";
 
 const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
 const MULTICHAR_PUNCTUATION = [['?', '.']];
 const IDENTIFIER_CHAIN_CHARS = ['.', '?.']
+const NUMBER_REGEX = /^-?(0b)?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(e-?[0-9]+(_[0-9]+)*)?(ul|lu|u|l|d|f|m)?/i
+const HEX_NUMBER_REGEX = /^-?(0x)[0-9a-f]+(_[0-9a-f]+)*(ul|lu|u|l|m)?/i
 
 const tokenizerConfig: TokenizerConfig = {
     PUNCTUATION: ',.;\\[]{}@#()~',
     IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
     IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
-    DIGIT: '1234567890',
     OPERATOR: '-+/*%=<>!|&^?:',
     STRING_DELIM: "\"'",
     SINGLE_LINE_COMMENT: '//',
@@ -64,6 +65,8 @@ const parseSequence: ParseSequence = [
     common.getCombineConsecutiveTokensFn([TOKEN_PUNCTUATION, TOKEN_OPERATOR], TOKEN_PUNCTUATION, MULTICHAR_PUNCTUATION),
     common.getCombineIdentifierChainsFn(IDENTIFIER_CHAIN_CHARS),
     common.combineBracketNotation,
+    common.getCombineMatchingTokens(TOKEN_NUMBER, HEX_NUMBER_REGEX),
+    common.getCombineMatchingTokens(TOKEN_NUMBER, NUMBER_REGEX),
     removeTypes,
     common.removeLambdas,
     common.getCombineConsecutiveTokensFn([TOKEN_KEYWORD], TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),

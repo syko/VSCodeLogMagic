@@ -10,7 +10,6 @@ const tokenizerConfig: TokenizerConfig = {
     PUNCTUATION: ',.;\\[]{}@#()',
     IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
     IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
-    DIGIT: '1234567890',
     OPERATOR: '-+/*%=<>!|&^?:~',
     STRING_DELIM: "\"'\`",
     SINGLE_LINE_COMMENT: '//',

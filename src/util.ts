@@ -137,6 +137,46 @@ export function getExpressionAt (tokens: Token[], startIndex: number, direction:
 
 	return includedTokens;
 };
+
+/**
+ * Walk the tokens at a given index in a given direction and try to match their combined values against the given string.
+ * This is like a startsWith function for tokens that supports matching at any index and in both directions.
+ * 
+ * @param tokens The tokens to walk
+ * @param str The string to match the tokens against
+ * @param index (optional) From what index to start matching tokens. Default: 0
+ * @param direction (optional) The direction in which to walk the tokens. Default: 1 (left to right)
+ * @param quoteCharacter (optional) The quoteCharacter to use if none is specified on string tokens
+ * @returns An array of tokens that match the given string or an empty array if no match
+ */
+export function getMatchingTokens(tokens: Token[], str: string, index: number = 0, direction: -1 | 1 = 1, quoteCharacter: string = '"'): Token[] {
+	let serializedStr: string = '';
+	for (let i = index; i >= 0 && i < tokens.length; i += direction) {
+		serializedStr = direction === 1 ? serializedStr + serializeToken(tokens[i], quoteCharacter): serializeToken(tokens[i], quoteCharacter) + serializedStr;
+		if (serializedStr === str) return tokens.slice(Math.min(index, i), Math.max(i + 1, index + 1));
+		else if (!str.startsWith(serializedStr)) return [];
+	}
+	return [];
+}
+
+export function getMatchingTokensRe(tokens: Token[], regex: RegExp, index: number = 0, direction: -1 | 1 = 1, quoteCharacter: string = '"'): Token[] {
+	if (regex.flags.includes('g')) {
+		throw new Error("LogMagic: getMatchingTokensRe only supports non-global regular expressions.");
+	}
+
+	let tokensToSerialize = tokens.slice(index);
+	if (direction == -1) tokensToSerialize.reverse();
+	let serializedStr: string = serializeTokens(tokensToSerialize, quoteCharacter);
+
+	const match = serializedStr.match(regex);
+	if (!match) return [];
+
+	if (match.index !== 0) {
+		throw new Error("LogMagic: getMatchingTokensRe: Match was found at position >0. This will not return the correct tokens. Please pass in a RegExp that starts with '^'.")
+	}
+
+	return getMatchingTokens(tokens, match[0], index, direction, quoteCharacter);
+}
  
 /**
  * Wraps the given string in quotation marks and also escapes the same quotation marks in the string.
