@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.2.1] - 2021-09-28
+
+### Fixed
+- Number parsing for C# and javascript now supports prefixes (like 0x, 0b), separators (_), scientific notation and suffixes (like f, u, l, etc in C# and n in javascript).
+
 ## [1.2.0] - 2021-09-23
 
 ### Added
