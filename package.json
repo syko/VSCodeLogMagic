@@ -2,7 +2,7 @@
 	"name": "logmagic",
 	"displayName": "LogMagic",
 	"description": "Easily print variables and parameters with keyboard shortcuts for quick debugging.",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"repository": "https://github.com/syko/VSCodeLogMagic",
 	"publisher": "syko",
 	"license": "See LICENSE",
