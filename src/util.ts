@@ -154,7 +154,7 @@ export function getMatchingTokens(tokens: Token[], str: string, index: number = 
 	for (let i = index; i >= 0 && i < tokens.length; i += direction) {
 		serializedStr = direction === 1 ? serializedStr + serializeToken(tokens[i], quoteCharacter): serializeToken(tokens[i], quoteCharacter) + serializedStr;
 		if (serializedStr === str) return tokens.slice(Math.min(index, i), Math.max(i + 1, index + 1));
-		else if (!str.startsWith(serializedStr)) return [];
+		else if (direction === 1 && !str.startsWith(serializedStr) || direction === -1 && !str.endsWith(serializedStr)) return [];
 	}
 	return [];
 }
