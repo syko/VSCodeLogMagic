@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.2.2] - 2021-09-30
+
+### Fixed
+- Fixed log rotator not identifying log suffix and treating it as a log item producing ` + ););` or similar when rotating.
+
 ## [1.2.1] - 2021-09-28
 
 ### Fixed
