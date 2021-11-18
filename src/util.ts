@@ -1,5 +1,5 @@
 import {ParseResult} from "./parser";
-import {Token, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
+import {Token, TokenType, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "./tokenizer";
 
 export const PARENS: string = '{[()]}';
 export const PARENS_EXT: string = '{[(<>)]}';
@@ -56,6 +56,10 @@ export function isClosingCodeBlock(str: string): boolean {
 		}
 	}
 	return false;
+}
+
+export function findTokenIndex (tokens: Token[], type: TokenType, value: string, fromIndex: number = 0): number {
+	return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === type && t.value === value);
 }
 
 /**
