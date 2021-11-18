@@ -1,5 +1,14 @@
 # Change Log
 
+## [1.3.0] - 2021-11-18
+
+### Fixed
+- Fixed erronesouly logging object keys as variables
+- Javascript: Improved the list of known keywords
+
+## Added
+- Javascript: Added support for destructuring syntax
+
 ## [1.2.2] - 2021-09-30
 
 ### Fixed
