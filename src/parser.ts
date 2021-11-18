@@ -289,6 +289,8 @@ export const common = {
 	 * Find a variable that is assigned function declaration and remove it.
 	 * This looks for a '=' that is not in a codeblock, then looks for a `function(...) {` declaration
 	 * after it and if it finds something, removes everything that comes before the '='.
+	 * 
+	 * Does not remove the assignee if the function definition is complete (`a = function() { ... }`)
 	 *
 	 * @param result The result to parse and modify in place.
 	 */

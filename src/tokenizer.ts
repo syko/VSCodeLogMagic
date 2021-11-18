@@ -163,6 +163,8 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
 
     /**
      * Read an operator at the current caret position in the input string and move the internal caret forward.
+     * A sequence of operator characters is combined into a single operator token.
+     * 
      * @param input The input string to read
      * @returns An operator Token
      */

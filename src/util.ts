@@ -60,6 +60,8 @@ export function isClosingCodeBlock(str: string): boolean {
 
 /**
  * Return a code block (a section of code wrapped in (), [], {} or <>) start starts or ends at startIndex.
+ * If there is no opening code block at position startIndex, an empty array is returned.
+ * If the code block does not close, all tokens starting from startIndex are returned.
  * Nested code blocks are ignored.
  * 
  * @param tokens Array of tokens in which the code block is searched for
