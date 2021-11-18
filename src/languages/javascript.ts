@@ -24,7 +24,9 @@ const tokenizerConfig: TokenizerConfig = {
         'typeof', 'var', 'void', 'while', 'with', 'yield', 'implements', 'interface', 'let',
         'package', 'private', 'protected', 'public', 'static', 'yield', 'abstract', 'boolean', 'byte',
         'char', 'double', 'final', 'float', 'goto', 'int', 'long', 'native', 'short',
-        'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false ', 'Infinity'
+        'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false ', 'Infinity', 'of',
+        'Number', 'String', 'Date', 'Error', 'RegExp', 'Map', 'Set', 'WeakMap', 'WeakSet',
+        'Promise', 'await', 'async', 'Intl'
     ]
 };
 
