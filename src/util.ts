@@ -21,12 +21,14 @@ function isOppositeParen (t: Token, initialParen: string): boolean {
 /**
  * A function that returns true if the given string is opening a new code block
  * (by testing to see if there is an opening paren of some sort that is not matched
- * by a closing paren).
+ * by a closing paren or if the line ends with a colon).
  *
  * @param str The string to test
  * @returns true if the string contains the opening of a code block
  */
 export function isOpeningCodeBlock(str: string): boolean {
+	if (str[str.length - 1] === ':') return true;
+
 	for (let i = 0; i < openingP.length; i++) {
 		let depth = 0;
 		for (let j = 0; j < str.length; j++) {
