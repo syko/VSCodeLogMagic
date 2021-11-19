@@ -250,6 +250,32 @@ export const common = {
 	},
 
 	/**
+	 * Return a ParseStep function for cleaning up identifiers which were part of a chain that could not be
+	 * combined int a single identifier (via getCombineConsecutiveTokensOfTypeFn).
+	 *
+	 * Identifiers are not chained if the chain includes function calls for example.
+	 * Something like `foo(a, b).bar` will result in ['a', 'b', '.', 'bar'] tokens left over. This function will remove
+	 * the identifier 'bar' since it is preceded with a chaining character, thus the chaining failed.
+	 *
+	 * NOTE: This is a straight up hack but it works. The proper thing to do would probably be to chain complex
+	 * statements into a single "identifier" (eg. 'Foo.GetComponent<SomeType>(a, b).Foo' becomes a single token) while
+	 * keeping identifiers within the function calls as separate tokens as well to be able to log them (a and b), and
+	 * then identifying such "identifier chains" that include function calls and remove them after setting the log id.
+	 * This way we could use the whole chain as a log id but then discard it because we want to avoid producing function calls
+	 * in our log statemets since they might include side effects.
+	 * But that's a lot more effort so for now we identify that there's an unchained 'Foo' preceded by a '.' and we remove it.
+	 * 
+	 * @param chainCharacters The characters that chain identifiers (most likely ['.'])
+	 * @returns The ParseStep function
+	 */
+	getRemoveIncompleteChainedIdentifiersFn: (chainCharacters: string[]): ParseStep => {
+		return (result: ParseResult): void => {
+			const isChainLink = (t: Token) => chainCharacters.includes(serializeToken(t));
+			result.tokens = result.tokens.filter((t: Token, i: number) => i === 0 || t.type !== TOKEN_IDENTIFIER || !isChainLink(result.tokens[i - 1]));
+		};
+	},
+
+	/**
 	 * Find a variable that is assigned an incomplete lambda declaration and remove it.
 	 * This looks for a '=' that is not in a codeblock, then looks for an incomplete lambda definition
 	 * after it and if it finds something, removes everything that comes before the '='.

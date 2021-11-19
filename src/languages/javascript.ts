@@ -148,6 +148,7 @@ const parseSequence: ParseSequence = [
     common.removeFunctionDeclarationAssignees,
     common.removeLambdaDeclarationAssignees,
     common.removeFunctionCalls,
+    common.getRemoveIncompleteChainedIdentifiersFn(IDENTIFIER_CHAIN_CHARS),
     common.removeLiterals,
     common.removePunctuation,
     common.removeOperators,
