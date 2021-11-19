@@ -215,6 +215,10 @@ export function serializeTokens (tokens: Token[], quoteChar: string | undefined 
 	return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t, quoteChar), '');
 };
 
+export function shortenIdentifier(str: string): string {
+	return str.length < 20 ? str : str.substr(0, 8) + '..' + str.substr(str.length - 8);
+}
+
 /**
 	* Ensure a ParseResult has a logId set. If not, generate one based on the current line number.
 	* 2 is added to the line number because line numbers are 0-based and the log statement is added to the next line.

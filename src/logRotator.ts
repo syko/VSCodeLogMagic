@@ -83,7 +83,7 @@ const removeLogItemKeys: ParseStep = (result: ParseResult): void => {
 		if (token.type !== TOKEN_STRING || !('' + token.value).trimRight().endsWith(':')) continue;
 		const identifierStr = ('' + token.value).substring(0, ('' + token.value).lastIndexOf(':')).trimLeft();
 		const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, i + 1, 1, result.logFormat!.quoteCharacter);
-		const identifierTokens = getMatchingTokens(tokens, identifierStr, i + separatorTokens.length + 1, 1, result.logFormat!.quoteCharacter);
+		const identifierTokens = getTokensUntilSeparator(tokens, result.logFormat!.parameterSeparator, result.logFormat!, i + separatorTokens.length + 1).next().value;
 		if(identifierTokens.length) tokens.splice(i, 1);
 	}
 };
@@ -95,10 +95,11 @@ const removeLogItemKeys: ParseStep = (result: ParseResult): void => {
  * @param tokens The tokens to walk
  * @param separator The separator string at which to split the tokens
  * @param logFormat The active LogFormat that defines how some tokens are serialized for matching the separator
+ * @param startIndex The starting index from where to start yielding tokens
  */
-function* getTokensUntilSeparator (tokens: Token[], separator: string, logFormat: LogFormat): Generator<Token[]> {
+function* getTokensUntilSeparator (tokens: Token[], separator: string, logFormat: LogFormat, startIndex: number = 0): Generator<Token[]> {
 	let accumulator: Token[] = []; // Current token block until separator found
-	for (let i = 0; i < tokens.length; i++) {
+	for (let i = startIndex; i < tokens.length; i++) {
 		// If separator at current index, yield accumulated tokens and skip over it
 		const separatorTokens: Token[] = getMatchingTokens(tokens, separator, i, 1, logFormat.quoteCharacter);
 		if (separatorTokens.length) {

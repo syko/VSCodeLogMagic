@@ -1,6 +1,6 @@
 import {ParseResult} from './parser';
 import {Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_STRING} from './tokenizer';
-import {quoteString, serializeTokens} from './util';
+import {quoteString, serializeTokens, shortenIdentifier} from './util';
 
 /**
  * One log statement format configuration for a given language.
@@ -77,7 +77,7 @@ export function validateLoggerConfig(config: LoggerConfig): string | null {
 function createLogItemKey(serializedItemValue: string, isFirst: boolean, format: LogFormat) {
 	const spacePrefix = format.insertSpaces && !isFirst ? ' ' : '';
 	const spaceSuffix = format.insertSpaces? ' ' : '';
-	return quoteString(spacePrefix + serializedItemValue + ':' + spaceSuffix, format.quoteCharacter);
+	return quoteString(spacePrefix + shortenIdentifier(serializedItemValue) + ':' + spaceSuffix, format.quoteCharacter);
 }
 
 /**
