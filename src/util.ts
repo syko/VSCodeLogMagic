@@ -217,6 +217,12 @@ export function serializeTokens (tokens: Token[], quoteChar: string | undefined 
 	return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t, quoteChar), '');
 };
 
+/**
+ * Return a shortened version of the given identifier if it is longer than a certain number of characters.
+ *
+ * @param str The identifier as a string
+ * @returns The possibly shortened identifier
+ */
 export function shortenIdentifier(str: string): string {
 	return str.length < 20 ? str : str.substr(0, 8) + '..' + str.substr(str.length - 8);
 }
