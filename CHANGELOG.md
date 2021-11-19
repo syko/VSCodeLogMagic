@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.4.0] - 2021-11-18
+## [1.4.0] - 2021-11-19
 
 ## Added
 - Long log item keys are now shortened ('someVeryLongIdentifier:' becomes 'someVery..entifier:')
