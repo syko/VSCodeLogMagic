@@ -206,7 +206,7 @@ export const common = {
 	removeLambdas: (result: ParseResult): void => {
 		// Remove complete lambdas that may have a defined parameter list
 		const tokens = result.tokens;
-		let skippedLambdaIndex = 0;
+		let skippedLambdaIndex = 0; // If we skip lambdas, we search for next ones from this index
 
 		const findNextLambdaOperatorIndex = (tokens: Token[], fromIndex: number) => {
 			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
@@ -221,9 +221,10 @@ export const common = {
 			// Set endIndex to point to the end of the lambda expression
 			t = tokens[operatorIndex + 1];
 			if (t?.type === TOKEN_PUNCTUATION && t?.value === '{') endIndex = operatorIndex + getCodeBlockAt(tokens, operatorIndex + 1).length;
-			else endIndex = operatorIndex + getExpressionAt(tokens, operatorIndex + 1).length;
+			else if (t) endIndex = operatorIndex + getExpressionAt(tokens, operatorIndex + 1).length;
+			else endIndex = operatorIndex;
 
-			if (tokens[endIndex].type === TOKEN_PUNCTUATION && tokens[endIndex].value === '{') {
+			if (endIndex === operatorIndex || tokens[endIndex].type === TOKEN_PUNCTUATION && tokens[endIndex].value === '{') {
 				// This is an open multiline lambda / function definition. Let's not remove that
 				skippedLambdaIndex = operatorIndex;
 				continue;
