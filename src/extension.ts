@@ -135,7 +135,13 @@ const createIsLogStatementFn = (loggerConfig: LoggerConfig) => {
  * @returns A string that can be prepended to a statement as indentation
  */
 function getIndentStr(editor: vscode.TextEditor, n: number): string {
-	return editor.options.insertSpaces ? '                                '.substr(0, editor.options.tabSize as number * n) : '\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t'.substr(0, n);
+	const indentChar = editor.options.insertSpaces ? ' ' : '\t';
+	const arr = new Array(n * (editor.options.insertSpaces ? editor.options.tabSize as number : 1));
+	for (let i = 0; i < arr.length; i++) {
+		arr[i] = indentChar;
+	}
+	return arr.join('');
+	// return editor.options.insertSpaces ? '                                '.substr(0, editor.options.tabSize as number * n) : '\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t'.substr(0, n);
 }
 
 /**
