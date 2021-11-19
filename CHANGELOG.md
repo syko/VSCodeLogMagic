@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.4.1] - 2021-11-19
+
+## Fixed
+- Fixed exception if logging on lines with very large indentation
+- Fixed indent when logging after switch cases (`case foo:`)
+- Fixed exception when a line of code ends with the lambda operator `=>`
+- Removed chained identifiers from log statements (eg. should not try to log `someProp` if the line is `foo(a, b).someProp`)
+
 ## [1.4.0] - 2021-11-19
 
 ## Added
