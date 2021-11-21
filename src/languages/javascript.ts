@@ -25,7 +25,7 @@ const tokenizerConfig: TokenizerConfig = {
         'typeof', 'var', 'void', 'while', 'with', 'yield', 'implements', 'interface', 'let',
         'package', 'private', 'protected', 'public', 'static', 'yield', 'abstract', 'boolean', 'byte',
         'char', 'double', 'final', 'float', 'goto', 'int', 'long', 'native', 'short',
-        'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false ', 'Infinity', 'of',
+        'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false', 'Infinity', 'of',
         'Number', 'String', 'Date', 'Error', 'RegExp', 'Map', 'Set', 'WeakMap', 'WeakSet',
         'Promise', 'await', 'async', 'Intl'
     ]
@@ -144,6 +144,7 @@ const parseSequence: ParseSequence = [
     common.removeLambdas,
     common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
     removeObjectKeys,
+    (result) => console.log(result.tokens.slice()),
     common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
     common.removeFunctionDeclarationAssignees,
     common.removeLambdaDeclarationAssignees,
