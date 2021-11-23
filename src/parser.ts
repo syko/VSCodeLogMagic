@@ -169,7 +169,7 @@ export const common = {
 	},
 
 	/**
-	 * Combine bracket notation into a single identifier (eg. someArray[12] becomes a single identifier token).
+	 * Combine bracket notation into a single identifier (eg. someNestedArray[12][34] becomes a single identifier token).
 	 * This also removes the "[12]" part from the tokens unless it contains another identifier (someArray[myVar + 1]).
 	 * This way inner variables can still be used in the output.
 	 * 
@@ -181,16 +181,25 @@ export const common = {
 			const token: Token = tokens[i];
 			if (token.type !== TOKEN_IDENTIFIER) continue;
 
-			// Detect if there's a '[' after an identifier and if so, get the whole [...] block
-			if (tokens[i + 1].type !== TOKEN_PUNCTUATION || tokens[i + 1].value !== '[') continue;
-			const block: Token[] = getCodeBlockAt(tokens, i + 1);
+			for (let j = i + 1; j < tokens.length; j++) {
+				// Detect if there's a '[' after an identifier and if so, get the whole [...] block
+				if (tokens[j].type !== TOKEN_PUNCTUATION || tokens[j].value !== '[') break;
+				const block: Token[] = getCodeBlockAt(tokens, j);
+				
+				// If code block does not end with ']', it's an incomplete block => ignore
+				if (!isCompleteCodeBlock(block)) break;
+				
+				token.value += serializeTokens(block);
 
-			// If code block does not end with ']', it's an incomplete block => ignore
-			if (!isCompleteCodeBlock(block)) continue;
-
-			token.value += serializeTokens(block);
-			// Remove the [...] part unless there's an identifier in there
-			if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) tokens.splice(i + 1, block.length);
+				// Remove the [...] part unless there's an identifier in there
+				// and move j accordingly so we can look for another [...] block after this one
+				if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) {
+					tokens.splice(j, block.length);
+					j--;
+				} else {
+					j += block.length - 1;
+				}
+			}
 		}
 	},
 
