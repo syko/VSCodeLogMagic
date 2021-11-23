@@ -3,7 +3,7 @@ import {ParseResult, ParseSequence, ParseStep, common} from "../parser";
 import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION} from "../tokenizer";
 import {getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT} from "../util";
 
-const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
+const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break', 'get', 'set'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
 const MULTICHAR_PUNCTUATION = [['?', '.']];
 const IDENTIFIER_CHAIN_CHARS = ['.', '?.']
