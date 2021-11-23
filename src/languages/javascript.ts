@@ -27,7 +27,7 @@ const tokenizerConfig: TokenizerConfig = {
         'char', 'double', 'final', 'float', 'goto', 'int', 'long', 'native', 'short',
         'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false', 'Infinity', 'of',
         'Number', 'String', 'Date', 'Error', 'RegExp', 'Map', 'Set', 'WeakMap', 'WeakSet',
-        'Promise', 'await', 'async', 'Intl'
+        'Promise', 'await', 'async', 'Intl', 'from'
     ]
 };
 
