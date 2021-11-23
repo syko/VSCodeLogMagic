@@ -120,9 +120,9 @@ export const common = {
 				
 				// If we found anything beyond a prefix and/or suffix, combine it all
 
-				if (!tokenChain.length) continue;
+				if (tokenChain.length < 2) continue;
 
-				tokens[i].type = newType; [].concat()
+				tokens[i].type = newType;
 				tokens[i].value = serializeTokens(prefixTokens.concat(tokenChain).concat(suffixTokens));
 				tokens.splice(i + 1, prefixTokens.length + tokenChain.length + suffixTokens.length - 1);
 			}
