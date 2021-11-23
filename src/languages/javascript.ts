@@ -137,8 +137,8 @@ const removeObjectKeys: ParseStep = (result: ParseResult): void => {
 const parseSequence: ParseSequence = [
     common.removeWhitespace,
     common.removeComments,
-    common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER, TOKEN_KEYWORD], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
     common.combineBracketNotation,
+    common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER, TOKEN_KEYWORD], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
     common.getCombineMatchingTokens(TOKEN_NUMBER, HEX_NUMBER_REGEX),
     common.getCombineMatchingTokens(TOKEN_NUMBER, NUMBER_REGEX),
     common.removeLambdas,
