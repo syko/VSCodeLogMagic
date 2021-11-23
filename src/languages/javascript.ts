@@ -144,7 +144,6 @@ const parseSequence: ParseSequence = [
     common.removeLambdas,
     common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
     removeObjectKeys,
-    (result) => console.log(result.tokens.slice()),
     common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
     common.removeFunctionDeclarationAssignees,
     common.removeLambdaDeclarationAssignees,
