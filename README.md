@@ -48,6 +48,8 @@ You can use the `logMagig.logFormats` configuration to create your own log state
 - Javascript
 - C#
 
+**Note:** it might still work for unsupported languages as well. You can use the extension settings to specify a default language that will define how it parses code and override the shape of the log statement for that language. The only way that it should ever "fail" is in determining what is and what is not an interesting variable to output. If the language is similar to any of the supported languages, it might work well enough.
+
 ### For Unity C# Development
 
 You can hit `alt + j` 3 times to cycle through C# statements variants until you get to `Debug.Log`.
@@ -89,9 +91,6 @@ If you want to fully switch over to Unity style logging, you can add the followi
   }
 }
 ```
-
-**Note:** it might still work for unsupported languages as well. You can use the extension settings to specify a default language that will define how it parses code and override the shape of the log statement for that language. The only way that it should ever "fail" is in determining what is and what is not an interesting variable to output. If the language is similar to any of the supported languages, it might work well enough.
-
 
 ## Extension Settings
 
