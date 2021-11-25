@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.5.0] - 2021-11-25
+
+## Added
+- Added support for any number of consecutive bracket notations (`foo[1][2][3]` will be considered a single identifier)
+
+## Fixed
+- Javascript: Fixed `false` not being recognized as a keyword
+- C#: `get` and `set` can now be log ids
+- Keywords / Std class names no longer break identifier chains
+- Bracket notation no longer breaks identifier chains (`foo[1][2].chained[3]` will be considered a single identifier)s
+
+## Changed
+- All setting types are now `resource` so they can be overridden at any configuration level
+- Improved README
+
 ## [1.4.1] - 2021-11-19
 
 ## Fixed
