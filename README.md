@@ -52,9 +52,11 @@ You can use the `logMagig.logFormats` configuration to create your own log state
 
 ### For Unity C# Development
 
+![Unity Logging](images/log-unity.gif "Unity Logging")
+
 You can hit `alt + j` 3 times to cycle through C# statements variants until you get to `Debug.Log`.
 
-If you want to fully switch over to Unity style logging, you can add the following to your configuration. You can do this on a User, Workspace or even Folder level.
+If you want to fully switch over to Unity style logging (like in the gif above), you can add the following to your configuration. You can do this on a User, Workspace or even Folder level.
 
 ```json
 {
