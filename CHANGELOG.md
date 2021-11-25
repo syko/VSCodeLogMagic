@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.5.1] - 2021-11-25
+
+## Changed
+- Updated README
+
 ## [1.5.0] - 2021-11-25
 
 ## Added
