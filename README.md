@@ -6,18 +6,18 @@ Easily print variables and parameters with keyboard shortcuts for quick debuggin
 
 ### Log Quickly
 
-Any log statement is just a keyboard shortuct away
-
-![Log anything quickly](images/log-anything.gif "Log anything quickly")
-
-### Log Anything
+Quickly log variables with a keyboard shortcut.
 
 Just hit `alt+j` and let LogMagic do the work.
 
+![Log anything quickly](images/log-anything.gif "Log anything quickly")
+
 ### Up / Down Support
 
-You can also log upwards with `alt+k`. This is especially helpful in case of return
-statements.
+You can also log upwards with `alt+k`. This is especially helpful when you want to inspect
+return statements.
+
+![Log Upwads](images/log-up.gif "Log Upwards")
 
 ### Cycle Through Different Kinds of Log Statements
 
@@ -27,25 +27,71 @@ In javascript for example you can cycle through `log`, `info`, `warn` and `error
 
 ![Log cycle](images/log-cycle.gif "Cycling through log levels is a breeze")
 
-### Add Your Own Log Statements
-
-For each language you can configure your own log statements to cycle through. You can even wrap logged identifiers in
-your own decorator functions or append `.toString()` for example.
-
 ### Remove All Log Statements
 
-Pressing `ctrl + alt + j` (or `cmd + alt +j` on a mac) removes all log statements from the current file.
+Pressing `ctrl + alt + j` (or `cmd + alt + j` on a mac) removes all log statements from the current file.
 
 ![Remove all log statements](images/remove-all.gif "Remove all log statements")
 
-### Generates a Unique Identifier if Nothing to Log
+### If Nothing to Log, Print the Line Number
 
 If LogMagic can't find anything meaningful to log it falls back to printing `L<line number>`.
 It always puts your caret at the end of the generated log statement for easy manual additions if needed.
 
-### Decorate Logged Identifiers With Custom Prefixes and Suffixes
+### Customize
 
-You can use the `logMagix.logFormats` configuration to create all sorts of custom log statements and cycle through them with ease.
+You can use the `logMagig.logFormats` configuration to create your own log statements to cycle through for each language / workspace / resource. You can even wrap logged identifiers in your own decorator functions or append `.toString()` for example.
+
+
+### Supported Languages
+
+- Javascript
+- C#
+
+### For Unity C# Development
+
+You can hit `alt + j` 3 times to cycle through C# statements variants until you get to `Debug.Log`.
+
+If you want to fully switch over to Unity style logging, you can add the following to your configuration. You can do this on a User, Workspace or even Folder level.
+
+```json
+{
+  "[csharp]": {
+    "logMagic.logFormats": [
+        {
+            "logPrefix": "Debug.Log(",
+            "parameterSeparator": " + ",
+            "identifierPrefix": "",
+            "identifierSuffix": "",
+            "logSuffix": ");",
+            "quoteCharacter": "\"",
+            "insertSpaces": true
+        },
+        {
+            "logPrefix": "Debug.LogWarning(",
+            "parameterSeparator": " + ",
+            "identifierPrefix": "",
+            "identifierSuffix": "",
+            "logSuffix": ");",
+            "quoteCharacter": "\"",
+            "insertSpaces": true
+        },
+        {
+            "logPrefix": "Debug.LogError(",
+            "parameterSeparator": " + ",
+            "identifierPrefix": "",
+            "identifierSuffix": "",
+            "logSuffix": ");",
+            "quoteCharacter": "\"",
+            "insertSpaces": true
+        }
+    ]
+  }
+}
+```
+
+**Note:** it might still work for unsupported languages as well. You can use the extension settings to specify a default language that will define how it parses code and override the shape of the log statement for that language. The only way that it should ever "fail" is in determining what is and what is not an interesting variable to output. If the language is similar to any of the supported languages, it might work well enough.
+
 
 ## Extension Settings
 
@@ -60,6 +106,10 @@ This extension contributes the following settings:
   - `logSuffix`: An ending suffix to complete the log statement, like _);_. The caret is placed right before the suffix by default.
   - `quoteCharacter`: The quote character to use when outputting strings.
   - `insertSpaces`: A boolean indicating whether logged strings should be wrapped in spaces for padding.
+
+## Limitations
+
+It does not know types or the semantics behind variables and parameters so it is not smart enough to avoid logging functions or other non-human-readable data. Consider it a helper, rather than a perfect tool for generating log statements.
 
 ## Release Notes
 
