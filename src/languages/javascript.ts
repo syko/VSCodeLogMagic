@@ -1,7 +1,7 @@
 import {LoggerConfig} from "../logger";
 import {ParseSequence, common, ParseStep, ParseResult} from "../parser";
-import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION} from "../tokenizer";
-import {findTokenIndex, getCodeBlockAt} from "../util";
+import {Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING} from "../tokenizer";
+import {closingP, findTokenIndex, getCodeBlockAt, serializeToken} from "../util";
 
 const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
 const MULTIWORD_KEYWORDS = [['else', 'if']];
@@ -134,6 +134,30 @@ const removeObjectKeys: ParseStep = (result: ParseResult): void => {
 
 };
 
+/**
+ * A function for removing the identifier that has been set as the log id but seems to be an object key.
+ * eg. in case of `someObjKey: function(p) {` we want someObjKey to be the log id but not actually log it.
+ *
+ * @param result The ParseResult to parse and modify in place
+ */
+const removeKeyIdentifier: ParseStep = (result: ParseResult): void => {
+    const tokens = result.tokens;
+    const keyPos = tokens.findIndex((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_STRING);
+    const colonPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === ':');
+    if (keyPos === -1 || colonPos === -1) return;
+    if (result.logId?.value !== serializeToken(tokens[keyPos])) return;
+
+    // Make sure not to mistake ternary for an object key notation
+    const ternaryPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === '?');
+    if (ternaryPos !== -1 && ternaryPos < colonPos) return;
+
+    const onlyPuncBetween = tokens.every((t: Token, i: Number) => i <= keyPos || i >= colonPos || t.type === TOKEN_PUNCTUATION);
+
+    if (!onlyPuncBetween) return;
+
+    tokens.splice(keyPos, 1);
+};
+
 const parseSequence: ParseSequence = [
     common.removeWhitespace,
     common.removeComments,
@@ -145,6 +169,7 @@ const parseSequence: ParseSequence = [
     common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
     removeObjectKeys,
     common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
+    removeKeyIdentifier,
     common.removeFunctionDeclarationAssignees,
     common.removeLambdaDeclarationAssignees,
     common.removeFunctionCalls,
