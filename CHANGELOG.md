@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.5.2] - 2021-12-08
+
+## Fixed
+- Javascript: Fixed trying to log object key in cases like `someKey: function(p) {`
+
 ## [1.5.1] - 2021-11-25
 
 ## Changed
