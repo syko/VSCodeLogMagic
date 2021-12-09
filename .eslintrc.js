@@ -34,8 +34,6 @@ module.exports = {
     'no-plusplus': 'off',
     'prefer-destructuring': 'off',
     'no-continue': 'off',
-    'import/extensions': 'off',
-    'linebreak-style': 'off',
-    'no-tabs': 'off'
+    'import/extensions': 'off'
   },
 };

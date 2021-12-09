@@ -13,13 +13,13 @@ import { quoteString, serializeTokens, shortenIdentifier } from './util';
  * quoteCharacter: Which quote character to use when turning identifiers into strings.
  */
 export type LogFormat = {
-	logPrefix: string;
-	parameterSeparator: string;
-	identifierPrefix: string;
-	identifierSuffix: string;
-	logSuffix: string;
-	quoteCharacter: string;
-	insertSpaces: boolean;
+  logPrefix: string;
+  parameterSeparator: string;
+  identifierPrefix: string;
+  identifierSuffix: string;
+  logSuffix: string;
+  quoteCharacter: string;
+  insertSpaces: boolean;
 };
 
 /**
@@ -97,9 +97,9 @@ function listLogItems(parseResult: ParseResult, format: LogFormat) {
     const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
     const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
     return (shouldLogItemKey ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
-				+ format.identifierPrefix
-				+ serializedItemValue
-				+ format.identifierSuffix;
+        + format.identifierPrefix
+        + serializedItemValue
+        + format.identifierSuffix;
   }).join(format.parameterSeparator);
 }
 
@@ -118,8 +118,8 @@ export function log(parseResult: ParseResult, format?: LogFormat) {
   if (parseResult.logId) params.push(quoteString('' + parseResult.logId.value, format.quoteCharacter));
   if (parseResult.logItems.length) params.push(listLogItems(parseResult, format));
   return format.logPrefix
-		+ params.join(format.parameterSeparator)
-		+ format.logSuffix;
+    + params.join(format.parameterSeparator)
+    + format.logSuffix;
 }
 
 /**

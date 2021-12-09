@@ -122,7 +122,7 @@ export function getExpressionAt(tokens: Token[], startIndex: number, direction: 
   const isExpressionBreakByParen = (t: Token): boolean => {
     return t.type === TOKEN_PUNCTUATION && (
       (direction == 1 && closingP.includes('' + t.value))
-			|| (direction == -1 && openingP.includes('' + t.value))
+      || (direction == -1 && openingP.includes('' + t.value))
     );
   };
 
@@ -230,12 +230,12 @@ export function shortenIdentifier(str: string): string {
 }
 
 /**
-	* Ensure a ParseResult has a logId set. If not, generate one based on the current line number.
-	* 2 is added to the line number because line numbers are 0-based and the log statement is added to the next line.
-	*
-	* @param parseResult The ParserResult to midfy in place
-	* @returns the same ParseResult
-	*/
+  * Ensure a ParseResult has a logId set. If not, generate one based on the current line number.
+  * 2 is added to the line number because line numbers are 0-based and the log statement is added to the next line.
+  *
+  * @param parseResult The ParserResult to midfy in place
+  * @returns the same ParseResult
+  */
 export function ensureLogId(parseResult: ParseResult, lineNr: number, direction: 1 | -1): ParseResult {
   if (!parseResult.logId) parseResult.logId = { type: TOKEN_STRING, value: 'L' + (lineNr + 1 + Math.max(0, direction)) };
   return parseResult;

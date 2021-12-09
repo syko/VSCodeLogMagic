@@ -21,15 +21,15 @@ export type TokenType = typeof TOKEN_NUMBER
  */
 export type Token = {
     type: TokenType;
-	value: string | number;
+  value: string | number;
 };
 
 /**
  * The syntax configuration that can be specified for each language.
  */
 export type TokenizerConfig = {
-	PUNCTUATION: string;
-	IDENTIFIER_START: string;
+  PUNCTUATION: string;
+  IDENTIFIER_START: string;
     IDENTIFIER: string;
     OPERATOR: string;
     STRING_DELIM: string;

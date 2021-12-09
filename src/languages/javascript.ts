@@ -147,7 +147,7 @@ const removeKeyIdentifier: ParseStep = (result: ParseResult): void => {
   const keyPos = tokens.findIndex((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_STRING);
   const colonPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === ':');
   if (keyPos === -1 || colonPos === -1 || colonPos < keyPos) return;
-  if (result.logId?.value !== serializeToken(tokens[keyPos])) return
+  if (result.logId?.value !== serializeToken(tokens[keyPos])) return;
 
   // Make sure not to mistake ternary for an object key notation
   const ternaryPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === '?');
