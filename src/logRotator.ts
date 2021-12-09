@@ -1,5 +1,5 @@
 import {
-  Token, TokenType, TOKEN_STRING, TOKEN_WHITESPACE,
+  Token, TOKEN_STRING, TOKEN_WHITESPACE,
 } from './tokenizer';
 import {
   ParseError, ParseResult, ParseSequence, ParseStep, ParseStepFactory,
@@ -140,31 +140,6 @@ const collectLogItems: ParseStep = (result: ParseResult): void => {
     logItem = iterator.next();
     if (logItem.value && logItem.value.length) result.logItems.push(logItem.value);
   } while (!logItem.done);
-};
-
-/**
- * A function that returns a ParseStep funcion that removes tokens
- * in each log item of a given type that are not within code blocks.
- * NB! This ParseStep function operates on logItems instead of the tokens array!
- *
- * @param result The result to parse and modify in place
- */
-const getRemoveTokensNotInCodeBlocksFn: ParseStepFactory = (type: TokenType): ParseStep => {
-  return (result: ParseResult): void => {
-    if (!result.logItems) return;
-    for (let i = 0; i < result.logItems.length; i++) {
-      const logItem = result.logItems[i];
-      for (let j = 0; j < logItem.length; j++) {
-        const codeBlock: Token[] = getCodeBlockAt(logItem, j, 1, PARENS_EXT);
-        if (isCompleteCodeBlock(codeBlock)) {
-          j += codeBlock.length - 1;
-        } else if (logItem[j].type === type) {
-          logItem.splice(j, 1);
-          j--;
-        }
-      }
-    }
-  };
 };
 
 /**
