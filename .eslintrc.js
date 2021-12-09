@@ -14,6 +14,28 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
   ],
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.ts']
+      }
+    }
+  },
+  globals: {
+    'vscode': 'readonly'
+  },
   rules: {
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
+    'no-param-reassign': 'off',
+    'prefer-template': 'off',
+    'no-mixed-operators': 'off',
+    'arrow-body-style': 'off',
+    'no-plusplus': 'off',
+    'prefer-destructuring': 'off',
+    'no-continue': 'off',
+    'import/extensions': 'off',
+    'linebreak-style': 'off',
+    'no-tabs': 'off'
   },
 };

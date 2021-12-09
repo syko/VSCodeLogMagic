@@ -1,17 +1,19 @@
-import {LogFormat} from "./logger";
+import { LogFormat } from './logger';
 import {
-	Token,
-	TokenType,
-	TOKEN_COMMENT,
-	TOKEN_IDENTIFIER,
-	TOKEN_KEYWORD,
-	TOKEN_NUMBER,
-	TOKEN_OPERATOR,
-	TOKEN_PUNCTUATION,
-	TOKEN_STRING,
-	TOKEN_WHITESPACE
-} from "./tokenizer";
-import {serializeTokens, getCodeBlockAt, getExpressionAt, isCompleteCodeBlock, getMatchingTokens, serializeToken, getMatchingTokensRe} from './util';
+  Token,
+  TokenType,
+  TOKEN_COMMENT,
+  TOKEN_IDENTIFIER,
+  TOKEN_KEYWORD,
+  TOKEN_NUMBER,
+  TOKEN_OPERATOR,
+  TOKEN_PUNCTUATION,
+  TOKEN_STRING,
+  TOKEN_WHITESPACE,
+} from './tokenizer';
+import {
+  serializeTokens, getCodeBlockAt, getExpressionAt, isCompleteCodeBlock, getMatchingTokens, serializeToken, getMatchingTokensRe,
+} from './util';
 
 /**
  * A parse result is an objecting containing all the current parsed info at any point in the parse process.
@@ -27,7 +29,7 @@ import {serializeTokens, getCodeBlockAt, getExpressionAt, isCompleteCodeBlock, g
  * logFormat: When the ParseResult is given to a Logger function, it will use this LogFormat unless one is
               specified directly.
  */
-;
+
 export type ParseResult = {
 	tokens: Token[];
 	logItems: Token[][];
@@ -68,7 +70,7 @@ export class ParseError extends Error {
  */
 export const common = {
 
-	/**
+  /**
 	 * Return a ParseStep function that chains tokens of a given type and combines them into one.
 	 * A list of allowed separators, prefix and suffixes can be provided which will also be combined.
 	 * Separators have to be single tokens and between 2 tokens of the correct type.
@@ -78,58 +80,57 @@ export const common = {
 	 * @param chainingCharacters An array of characters that can chain identifiers together (probably ['.'] in most cases)
 	 * @returns A ParseStep function
 	 */
-	getCombineConsecutiveTokensOfTypeFn: (typesToChain: TokenType[], newType: TokenType, allowedSeparators: string[], allowedPrefixes: string[] = [], allowedSuffixes: string[] = []): ParseStep => {
-		return (result: ParseResult): void => {
-			const tokens = result.tokens;
+  getCombineConsecutiveTokensOfTypeFn: (typesToChain: TokenType[], newType: TokenType, allowedSeparators: string[], allowedPrefixes: string[] = [], allowedSuffixes: string[] = []): ParseStep => {
+    return (result: ParseResult): void => {
+      const tokens = result.tokens;
 
-			// n%2 fn in this array returns whether the given token is good for being the next link in the chain
-			const isChainLink: {(t: Token): boolean}[] = [
-				(t: Token) => typesToChain.includes(t.type),
-				(t: Token) => allowedSeparators.includes(serializeToken(t)) // TODO: quoteCharacter
-			];
+      // n%2 fn in this array returns whether the given token is good for being the next link in the chain
+      const isChainLink: {(t: Token): boolean}[] = [
+        (t: Token) => typesToChain.includes(t.type),
+        (t: Token) => allowedSeparators.includes(serializeToken(t)), // TODO: quoteCharacter
+      ];
 
-			for (let i = 0; i < tokens.length; i++) {
-				
-				// Find matching prefix if any
+      for (let i = 0; i < tokens.length; i++) {
+        // Find matching prefix if any
 
-				let prefixTokens: Token[] = [];
-				for (let j = 0; j < allowedPrefixes.length; j++) {
-					const prefix = allowedPrefixes[j];
-					prefixTokens = getMatchingTokens(tokens, prefix, i); // TODO: quoteCharacter
-					if (prefixTokens.length) break;
-				}
+        let prefixTokens: Token[] = [];
+        for (let j = 0; j < allowedPrefixes.length; j++) {
+          const prefix = allowedPrefixes[j];
+          prefixTokens = getMatchingTokens(tokens, prefix, i); // TODO: quoteCharacter
+          if (prefixTokens.length) break;
+        }
 
-				// Chain tokens after the prefix
+        // Chain tokens after the prefix
 
-				let tokenChain: Token[] = [];
+        const tokenChain: Token[] = [];
 
-				for (let j = i + prefixTokens.length; j < tokens.length; j++) {
-					if (isChainLink[tokenChain.length % 2](tokens[j])) tokenChain.push(tokens[j]);
-					else break;
-				}
-				if (tokenChain.length && isChainLink[1](tokenChain[tokenChain.length - 1])) tokenChain.pop(); // Chain can't end with a separator
+        for (let j = i + prefixTokens.length; j < tokens.length; j++) {
+          if (isChainLink[tokenChain.length % 2](tokens[j])) tokenChain.push(tokens[j]);
+          else break;
+        }
+        if (tokenChain.length && isChainLink[1](tokenChain[tokenChain.length - 1])) tokenChain.pop(); // Chain can't end with a separator
 
-				// Find matching suffix if any
+        // Find matching suffix if any
 
-				let suffixTokens: Token[] = [];
-				for (let j = 0; j < allowedSuffixes.length; j++) {
-					const suffix = allowedSuffixes[j];
-					suffixTokens = getMatchingTokens(tokens, suffix, i + prefixTokens.length + tokenChain.length); // TODO: quoteCharacter
-					if (suffixTokens.length) break;
-				}
-				
-				// If we found anything beyond a prefix and/or suffix, combine it all
+        let suffixTokens: Token[] = [];
+        for (let j = 0; j < allowedSuffixes.length; j++) {
+          const suffix = allowedSuffixes[j];
+          suffixTokens = getMatchingTokens(tokens, suffix, i + prefixTokens.length + tokenChain.length); // TODO: quoteCharacter
+          if (suffixTokens.length) break;
+        }
 
-				if (tokenChain.length < 2) continue;
+        // If we found anything beyond a prefix and/or suffix, combine it all
 
-				tokens[i].type = newType;
-				tokens[i].value = serializeTokens(prefixTokens.concat(tokenChain).concat(suffixTokens));
-				tokens.splice(i + 1, prefixTokens.length + tokenChain.length + suffixTokens.length - 1);
-			}
-		}
-	},
+        if (tokenChain.length < 2) continue;
 
-	/**
+        tokens[i].type = newType;
+        tokens[i].value = serializeTokens(prefixTokens.concat(tokenChain).concat(suffixTokens));
+        tokens.splice(i + 1, prefixTokens.length + tokenChain.length + suffixTokens.length - 1);
+      }
+    };
+  },
+
+  /**
 	 * Return a ParseStep function for combining consecutive tokens into a single token.
 	 * Eg. Specifying [['else', 'if'], ['not', 'in']] will combine consecutive 'else', 'if' and 'not', 'in' tokens into 'else if' and 'not in' tokens.
 	 *
@@ -139,71 +140,71 @@ export const common = {
 	 * @param separator An optional separator string to use when joining token values
 	 * @returns A ParseStep function for combining multi-word keywords.
 	 */
-	getCombineConsecutiveTokensOfValueFn: (newType: TokenType, valuesToCombine: string[][], separator: string = ''): ParseStep => {
-		return (result: ParseResult): void => {
-			const tokens = result.tokens;
-			for (let i = 0; i < tokens.length; i++) {
-				// match will be an item from valuesToCombine matches the tokens at current position
-				const match: string[] | undefined = valuesToCombine.find((toCombine: string[]) => toCombine.every((v, j) => {
-					return !!tokens[i + j] && serializeToken(tokens[i + j]) === v; // TODO: quoteCharacter
-				}));
-				if (!match) continue
-				tokens[i].type = newType;
-				tokens[i].value = match.join(separator);
-				tokens.splice(i + 1, match.length - 1);
-			}
-		}
-	},
+  getCombineConsecutiveTokensOfValueFn: (newType: TokenType, valuesToCombine: string[][], separator: string = ''): ParseStep => {
+    return (result: ParseResult): void => {
+      const tokens = result.tokens;
+      for (let i = 0; i < tokens.length; i++) {
+        // match will be an item from valuesToCombine matches the tokens at current position
+        const match: string[] | undefined = valuesToCombine.find((toCombine: string[]) => toCombine.every((v, j) => {
+          return !!tokens[i + j] && serializeToken(tokens[i + j]) === v; // TODO: quoteCharacter
+        }));
+        if (!match) continue;
+        tokens[i].type = newType;
+        tokens[i].value = match.join(separator);
+        tokens.splice(i + 1, match.length - 1);
+      }
+    };
+  },
 
-	getCombineMatchingTokens: (newType: TokenType, regex: RegExp, separator: string = ''): ParseStep => {
-		return (result: ParseResult): void => {
-			const tokens = result.tokens;
-			for (let i = 0; i < tokens.length; i++) {
-				const match = getMatchingTokensRe(tokens, regex, i); // TODO: quoteCharacter
-				if (!match.length) continue;
-				tokens[i].type = newType;
-				tokens[i].value = match.join(separator);
-				tokens.splice(i + 1, match.length - 1);
-			}
-		}
-	},
+  getCombineMatchingTokens: (newType: TokenType, regex: RegExp, separator: string = ''): ParseStep => {
+    return (result: ParseResult): void => {
+      const tokens = result.tokens;
+      for (let i = 0; i < tokens.length; i++) {
+        const match = getMatchingTokensRe(tokens, regex, i); // TODO: quoteCharacter
+        if (!match.length) continue;
+        tokens[i].type = newType;
+        tokens[i].value = match.join(separator);
+        tokens.splice(i + 1, match.length - 1);
+      }
+    };
+  },
 
-	/**
+  /**
 	 * Combine bracket notation into a single identifier (eg. someNestedArray[12][34] becomes a single identifier token).
 	 * This also removes the "[12]" part from the tokens unless it contains another identifier (someArray[myVar + 1]).
 	 * This way inner variables can still be used in the output.
-	 * 
+	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	combineBracketNotation: (result: ParseResult): void => {
-		const tokens = result.tokens;
-		for (let i = 0; i < tokens.length - 3; i++) {
-			const token: Token = tokens[i];
-			if (token.type !== TOKEN_IDENTIFIER) continue;
+  combineBracketNotation: (result: ParseResult): void => {
+    const tokens = result.tokens;
+    for (let i = 0; i < tokens.length - 3; i++) {
+      const token: Token = tokens[i];
+      if (token.type !== TOKEN_IDENTIFIER) continue;
 
-			for (let j = i + 1; j < tokens.length; j++) {
-				// Detect if there's a '[' after an identifier and if so, get the whole [...] block
-				if (tokens[j].type !== TOKEN_PUNCTUATION || tokens[j].value !== '[') break;
-				const block: Token[] = getCodeBlockAt(tokens, j);
-				
-				// If code block does not end with ']', it's an incomplete block => ignore
-				if (!isCompleteCodeBlock(block)) break;
-				
-				token.value += serializeTokens(block);
+      for (let j = i + 1; j < tokens.length; j++) {
+        // Detect if there's a '[' after an identifier and if so, get the whole [...] block
+        if (tokens[j].type !== TOKEN_PUNCTUATION || tokens[j].value !== '[') break;
+        const block: Token[] = getCodeBlockAt(tokens, j);
 
-				// Remove the [...] part unless there's an identifier in there
-				// and move j accordingly so we can look for another [...] block after this one
-				if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) {
-					tokens.splice(j, block.length);
-					j--;
-				} else {
-					j += block.length - 1;
-				}
-			}
-		}
-	},
+        // If code block does not end with ']', it's an incomplete block => ignore
+        if (!isCompleteCodeBlock(block)) break;
 
-	/**
+        token.value += serializeTokens(block);
+
+        // Remove the [...] part unless there's an identifier in there
+        // and move j accordingly so we can look for another [...] block after this one
+        if (!block.find((t: Token) => t.type === TOKEN_IDENTIFIER)) {
+          tokens.splice(j, block.length);
+          j--;
+        } else {
+          j += block.length - 1;
+        }
+      }
+    }
+  },
+
+  /**
 	 * Remove all `params => expr`-style lambdas from the ParseResult.
 	 * Supports parameters '(p1, p2) => doSomething(p1, p2)'
 	 * Supports parameters without parentheses 'p => { return doSomething(p) }'
@@ -212,53 +213,54 @@ export const common = {
      *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeLambdas: (result: ParseResult): void => {
-		// Remove complete lambdas that may have a defined parameter list
-		const tokens = result.tokens;
-		let skippedLambdaIndex = 0; // If we skip lambdas, we search for next ones from this index
+  removeLambdas: (result: ParseResult): void => {
+    // Remove complete lambdas that may have a defined parameter list
+    const tokens = result.tokens;
+    let skippedLambdaIndex = 0; // If we skip lambdas, we search for next ones from this index
 
-		const findNextLambdaOperatorIndex = (tokens: Token[], fromIndex: number) => {
-			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
-		}
+    const findNextLambdaOperatorIndex = (tokens: Token[], fromIndex: number) => {
+      return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
+    };
 
-		for (let q = 0; q < 9999; q++) { // q is just infinite loop protection
-			let startIndex: number, endIndex: number;
-			let t: Token;
-			const operatorIndex: number = findNextLambdaOperatorIndex(tokens, skippedLambdaIndex + 1);
-			if (operatorIndex == -1) break;
+    for (let q = 0; q < 9999; q++) { // q is just infinite loop protection
+      let startIndex: number; let
+        endIndex: number;
+      let t: Token;
+      const operatorIndex: number = findNextLambdaOperatorIndex(tokens, skippedLambdaIndex + 1);
+      if (operatorIndex == -1) break;
 
-			// Set endIndex to point to the end of the lambda expression
-			t = tokens[operatorIndex + 1];
-			if (t?.type === TOKEN_PUNCTUATION && t?.value === '{') endIndex = operatorIndex + getCodeBlockAt(tokens, operatorIndex + 1).length;
-			else if (t) endIndex = operatorIndex + getExpressionAt(tokens, operatorIndex + 1).length;
-			else endIndex = operatorIndex;
+      // Set endIndex to point to the end of the lambda expression
+      t = tokens[operatorIndex + 1];
+      if (t?.type === TOKEN_PUNCTUATION && t?.value === '{') endIndex = operatorIndex + getCodeBlockAt(tokens, operatorIndex + 1).length;
+      else if (t) endIndex = operatorIndex + getExpressionAt(tokens, operatorIndex + 1).length;
+      else endIndex = operatorIndex;
 
-			if (endIndex === operatorIndex || tokens[endIndex].type === TOKEN_PUNCTUATION && tokens[endIndex].value === '{') {
-				// This is an open multiline lambda / function definition. Let's not remove that
-				skippedLambdaIndex = operatorIndex;
-				continue;
-			}
+      if (endIndex === operatorIndex || tokens[endIndex].type === TOKEN_PUNCTUATION && tokens[endIndex].value === '{') {
+        // This is an open multiline lambda / function definition. Let's not remove that
+        skippedLambdaIndex = operatorIndex;
+        continue;
+      }
 
-			// Set startIndex to point to the start of the lambda expression
-			t = tokens[operatorIndex - 1];
-			if (t?.type === TOKEN_PUNCTUATION && t?.value === ')') startIndex = operatorIndex - getCodeBlockAt(tokens, operatorIndex - 1, -1).length;
-			else if (t?.type === TOKEN_IDENTIFIER) startIndex = operatorIndex - 1;
-			else startIndex = operatorIndex; // Dunno wth is preceding the lambda operator - just leave it be
+      // Set startIndex to point to the start of the lambda expression
+      t = tokens[operatorIndex - 1];
+      if (t?.type === TOKEN_PUNCTUATION && t?.value === ')') startIndex = operatorIndex - getCodeBlockAt(tokens, operatorIndex - 1, -1).length;
+      else if (t?.type === TOKEN_IDENTIFIER) startIndex = operatorIndex - 1;
+      else startIndex = operatorIndex; // Dunno wth is preceding the lambda operator - just leave it be
 
-			tokens.splice(startIndex, endIndex - startIndex + 1);
-		}
-	},
+      tokens.splice(startIndex, endIndex - startIndex + 1);
+    }
+  },
 
-	/**
+  /**
 	 * Remove all function names from function calls (eg. 'doSomething(p1)' becomes '(p1)').
 	 * @param result The result to parse and modify in place.
 	 */
-	removeFunctionCalls: (result: ParseResult): void => {
-		const isParen = (t?: Token) => !!t && t.type == TOKEN_PUNCTUATION && t.value === '(';
-		result.tokens = result.tokens.filter((t: Token, i: number) => t.type !== TOKEN_IDENTIFIER || !isParen(result.tokens[i + 1]));
-	},
+  removeFunctionCalls: (result: ParseResult): void => {
+    const isParen = (t?: Token) => !!t && t.type == TOKEN_PUNCTUATION && t.value === '(';
+    result.tokens = result.tokens.filter((t: Token, i: number) => t.type !== TOKEN_IDENTIFIER || !isParen(result.tokens[i + 1]));
+  },
 
-	/**
+  /**
 	 * Return a ParseStep function for cleaning up identifiers which were part of a chain that could not be
 	 * combined int a single identifier (via getCombineConsecutiveTokensOfTypeFn).
 	 *
@@ -273,150 +275,148 @@ export const common = {
 	 * This way we could use the whole chain as a log id but then discard it because we want to avoid producing function calls
 	 * in our log statemets since they might include side effects.
 	 * But that's a lot more effort so for now we identify that there's an unchained 'Foo' preceded by a '.' and we remove it.
-	 * 
+	 *
 	 * @param chainCharacters The characters that chain identifiers (most likely ['.'])
 	 * @returns The ParseStep function
 	 */
-	getRemoveIncompleteChainedIdentifiersFn: (chainCharacters: string[]): ParseStep => {
-		return (result: ParseResult): void => {
-			const isChainLink = (t: Token) => chainCharacters.includes(serializeToken(t));
-			result.tokens = result.tokens.filter((t: Token, i: number) => i === 0 || t.type !== TOKEN_IDENTIFIER || !isChainLink(result.tokens[i - 1]));
-		};
-	},
+  getRemoveIncompleteChainedIdentifiersFn: (chainCharacters: string[]): ParseStep => {
+    return (result: ParseResult): void => {
+      const isChainLink = (t: Token) => chainCharacters.includes(serializeToken(t));
+      result.tokens = result.tokens.filter((t: Token, i: number) => i === 0 || t.type !== TOKEN_IDENTIFIER || !isChainLink(result.tokens[i - 1]));
+    };
+  },
 
-	/**
+  /**
 	 * Find a variable that is assigned an incomplete lambda declaration and remove it.
 	 * This looks for a '=' that is not in a codeblock, then looks for an incomplete lambda definition
 	 * after it and if it finds something, removes everything that comes before the '='.
 	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeLambdaDeclarationAssignees: (result: ParseResult): void => {
-		const tokens = result.tokens;
+  removeLambdaDeclarationAssignees: (result: ParseResult): void => {
+    const tokens = result.tokens;
 
-		const findNextLambdaOperatorIndex = (tokens: Token[], fromIndex: number) => {
-			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
-		};
+    const findNextLambdaOperatorIndex = (tokens: Token[], fromIndex: number) => {
+      return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
+    };
 
-		for (let i = 0; i < tokens.length; i++) {
-			const token = tokens[i];
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
 
-			// Skip code blocks
-			const codeBlock = getCodeBlockAt(tokens, i);
-			if (isCompleteCodeBlock(codeBlock)) i += codeBlock.length - 1;
-			if (token.type !== TOKEN_OPERATOR || token.value !== '=') continue;
+      // Skip code blocks
+      const codeBlock = getCodeBlockAt(tokens, i);
+      if (isCompleteCodeBlock(codeBlock)) i += codeBlock.length - 1;
+      if (token.type !== TOKEN_OPERATOR || token.value !== '=') continue;
 
-			// '=' found at position i
-			// Find an incomplete lambda
-			for (let j = i + 1; j < tokens.length; j++) {
-				const operatorIndex = findNextLambdaOperatorIndex(tokens, j);
-				if (operatorIndex === -1 || operatorIndex === tokens.length - 1) return;
-				if (tokens[operatorIndex + 1].type !== TOKEN_PUNCTUATION || tokens[operatorIndex + 1].value !== '{') j = operatorIndex;
-				else if (!isCompleteCodeBlock(getCodeBlockAt(tokens, operatorIndex + 1))) {
-					tokens.splice(0, i);
-					return;
-				}
-			}
+      // '=' found at position i
+      // Find an incomplete lambda
+      for (let j = i + 1; j < tokens.length; j++) {
+        const operatorIndex = findNextLambdaOperatorIndex(tokens, j);
+        if (operatorIndex === -1 || operatorIndex === tokens.length - 1) return;
+        if (tokens[operatorIndex + 1].type !== TOKEN_PUNCTUATION || tokens[operatorIndex + 1].value !== '{') j = operatorIndex;
+        else if (!isCompleteCodeBlock(getCodeBlockAt(tokens, operatorIndex + 1))) {
+          tokens.splice(0, i);
+          return;
+        }
+      }
+    }
+  },
 
-		}
-	},
-
-	/**
+  /**
 	 * Find a variable that is assigned function declaration and remove it.
 	 * This looks for a '=' that is not in a codeblock, then looks for a `function(...) {` declaration
 	 * after it and if it finds something, removes everything that comes before the '='.
-	 * 
+	 *
 	 * Does not remove the assignee if the function definition is complete (`a = function() { ... }`)
 	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeFunctionDeclarationAssignees: (result: ParseResult): void => {
-		const tokens = result.tokens;
+  removeFunctionDeclarationAssignees: (result: ParseResult): void => {
+    const tokens = result.tokens;
 
-		const findNextFunctionKeywordIndex = (tokens: Token[], fromIndex: number) => {
-			return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_KEYWORD && t.value === 'function')
-		};
+    const findNextFunctionKeywordIndex = (tokens: Token[], fromIndex: number) => {
+      return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_KEYWORD && t.value === 'function');
+    };
 
-		for (let i = 0; i < tokens.length; i++) {
-			const token = tokens[i];
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
 
-			// Skip code blocks
-			const codeBlock = getCodeBlockAt(tokens, i);
-			if (isCompleteCodeBlock(codeBlock)) i += codeBlock.length - 1;
-			if (token.type !== TOKEN_OPERATOR || token.value !== '=') continue;
+      // Skip code blocks
+      const codeBlock = getCodeBlockAt(tokens, i);
+      if (isCompleteCodeBlock(codeBlock)) i += codeBlock.length - 1;
+      if (token.type !== TOKEN_OPERATOR || token.value !== '=') continue;
 
-			// '=' found at position i
-			// Find a function assignment
-			for (let j = i + 1; j < tokens.length; j++) {
-				const keywordIndex = findNextFunctionKeywordIndex(tokens, j);
-				if (keywordIndex === -1 || keywordIndex >= tokens.length - 3) return;
+      // '=' found at position i
+      // Find a function assignment
+      for (let j = i + 1; j < tokens.length; j++) {
+        const keywordIndex = findNextFunctionKeywordIndex(tokens, j);
+        if (keywordIndex === -1 || keywordIndex >= tokens.length - 3) return;
 
-				// Expect a parameter block following the keyword
-				const parameterBlock = getCodeBlockAt(tokens, keywordIndex + 1);
-				const openingBracePosition = keywordIndex + parameterBlock.length + 1
-				if (openingBracePosition >= tokens.length) return;
+        // Expect a parameter block following the keyword
+        const parameterBlock = getCodeBlockAt(tokens, keywordIndex + 1);
+        const openingBracePosition = keywordIndex + parameterBlock.length + 1;
+        if (openingBracePosition >= tokens.length) return;
 
-				if (tokens[openingBracePosition].type !== TOKEN_PUNCTUATION || tokens[openingBracePosition].value !== '{') return;
-				if (!isCompleteCodeBlock(getCodeBlockAt(tokens, openingBracePosition))) {
-					tokens.splice(0, i);
-					return;
-				}
-			}
+        if (tokens[openingBracePosition].type !== TOKEN_PUNCTUATION || tokens[openingBracePosition].value !== '{') return;
+        if (!isCompleteCodeBlock(getCodeBlockAt(tokens, openingBracePosition))) {
+          tokens.splice(0, i);
+          return;
+        }
+      }
+    }
+  },
 
-		}
-	},
-
-	/**
+  /**
 	 * Remove all strings and numbers from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removeLiterals: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_STRING && t.type !== TOKEN_NUMBER);
-	},
+  removeLiterals: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_STRING && t.type !== TOKEN_NUMBER);
+  },
 
-	/**
+  /**
 	 * Remove all punctuation from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removePunctuation: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_PUNCTUATION);
-	},
+  removePunctuation: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_PUNCTUATION);
+  },
 
-	/**
+  /**
 	 * Remove all operators from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removeOperators: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_OPERATOR);
-	},
+  removeOperators: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t: Token) => t.type !== TOKEN_OPERATOR);
+  },
 
-	/**
+  /**
 	 * Remove all comments from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removeComments: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t) => t.type !== TOKEN_COMMENT);
-	},
+  removeComments: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t) => t.type !== TOKEN_COMMENT);
+  },
 
-	/**
+  /**
 	 * Remove all comments from the ParseResult.
 	 * @param result The result to parse and modify in place.
 	 */
-	removeWhitespace: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t) => t.type !== TOKEN_WHITESPACE);
-	},
+  removeWhitespace: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t) => t.type !== TOKEN_WHITESPACE);
+  },
 
-	/**
+  /**
 	 * Remove everything that's not an identifier from the ParseResult.
 	 * This should probably be called as the last step in the ParseSequence.
 	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeNonIdentifiers: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t: Token) => t.type === TOKEN_IDENTIFIER);
-	},
+  removeNonIdentifiers: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t: Token) => t.type === TOKEN_IDENTIFIER);
+  },
 
-	/**
+  /**
 	 * Return a ParseStep function for determining the best log Id for the ParseResult.
 	 * If it finds one of the specified keywords in the remaining tokens, it uses that. Otherwise it uses the first identifier it can find.
 	 * If it can't find anything, the logId is left as undefined.
@@ -424,33 +424,33 @@ export const common = {
 	 * @param interestingKeywords An array of keywords to consider for the logId. All others are ignored.
 	 * @returns A ParseStep function for setting the logId property.
 	 */
-	getSetDefaultIdFn: (interestingKeywords: string[]): ParseStep => {
-		return (result: ParseResult): void => {
-			// Either use first interesting keyword or first identifier
-			let t: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
-			if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
-			if (t) result.logId = {...t};
-		}
-	},
+  getSetDefaultIdFn: (interestingKeywords: string[]): ParseStep => {
+    return (result: ParseResult): void => {
+      // Either use first interesting keyword or first identifier
+      let t: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
+      if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
+      if (t) result.logId = { ...t };
+    };
+  },
 
-	/**
+  /**
 	 * A ParseStep function that removes duplicate tokens.
 	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	removeDuplicates: (result: ParseResult): void => {
-		result.tokens = result.tokens.filter((t: Token, i: number) => !result.tokens.find((t2: Token, j: number) => t2.type === t.type && t2.value === t.value && j < i))
-	},
+  removeDuplicates: (result: ParseResult): void => {
+    result.tokens = result.tokens.filter((t: Token, i: number) => !result.tokens.find((t2: Token, j: number) => t2.type === t.type && t2.value === t.value && j < i));
+  },
 
-	/**
+  /**
 	 * Take all the tokens in the ParseResult and store each one individually as an item to log.
 	 * You want to do this as the last parse step.
 	 *
 	 * @param result The result to parse and modify in place.
 	 */
-	storeTokensAsLogItems: (result: ParseResult): void => {
-		result.logItems = result.tokens.map((t: Token) => [t]);
-	}
+  storeTokensAsLogItems: (result: ParseResult): void => {
+    result.logItems = result.tokens.map((t: Token) => [t]);
+  },
 };
 
 /**
@@ -459,13 +459,11 @@ export const common = {
  * @returns A Parser function
  */
 export function createParser(sequence: ParseSequence): Parser {
+  const parse: Parser = (tokens: Token[]): ParseResult => {
+    const result: ParseResult = { tokens, logItems: [] };
+    sequence.forEach((fn: ParseStep) => fn(result));
+    return result;
+  };
 
-	const parse: Parser = (tokens: Token[]): ParseResult => {
-        const result: ParseResult = { tokens: tokens, logItems: [] };
-		sequence.forEach((fn: ParseStep) => fn(result));
-        return result;
-
-	}
-
-	return parse;
+  return parse;
 }

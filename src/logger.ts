@@ -1,6 +1,6 @@
-import {ParseResult} from './parser';
-import {Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_STRING} from './tokenizer';
-import {quoteString, serializeTokens, shortenIdentifier} from './util';
+import { ParseResult } from './parser';
+import { Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD } from './tokenizer';
+import { quoteString, serializeTokens, shortenIdentifier } from './util';
 
 /**
  * One log statement format configuration for a given language.
@@ -35,49 +35,49 @@ export type Logger = (parseResult: ParseResult) => string;
 
 /**
  * Validate a LogFormat object. This is necessary since the user can override LogFormats via settings.
- * 
+ *
  * @param format The LogFormat to validate
  * @returns An error message or null if valid
  */
 export function validateLogFormat(format: LogFormat): string | null {
-	if(typeof format.logPrefix !== 'string') return 'logPrefix not found or is not a string';
-	if(typeof format.parameterSeparator !== 'string') return 'parameterSeparator not found or is not a string';
-	if(typeof format.identifierPrefix !== 'string') return 'identifierPrefix not found or is not a string';
-	if(typeof format.identifierSuffix !== 'string') return 'identifierSuffix not found or is not a string';
-	if(typeof format.logSuffix !== 'string') return 'logSuffix not found or is not a string';
-	if(typeof format.quoteCharacter !== 'string') return 'quoteCharacter not found or is not a string';
-	if(typeof format.insertSpaces !== 'boolean') return 'insertSpaces not found or is not a boolean';
-	return null;
+  if (typeof format.logPrefix !== 'string') return 'logPrefix not found or is not a string';
+  if (typeof format.parameterSeparator !== 'string') return 'parameterSeparator not found or is not a string';
+  if (typeof format.identifierPrefix !== 'string') return 'identifierPrefix not found or is not a string';
+  if (typeof format.identifierSuffix !== 'string') return 'identifierSuffix not found or is not a string';
+  if (typeof format.logSuffix !== 'string') return 'logSuffix not found or is not a string';
+  if (typeof format.quoteCharacter !== 'string') return 'quoteCharacter not found or is not a string';
+  if (typeof format.insertSpaces !== 'boolean') return 'insertSpaces not found or is not a boolean';
+  return null;
 }
 
 /**
  * Validate a LoggerConfig object. This is necessary since the user can override LoggerConfigs via settings.
- * 
+ *
  * @param config The LoggerConfig to validate
  * @returns An error message or null if valid
  */
 export function validateLoggerConfig(config: LoggerConfig): string | null {
-	for (let i = 0; i < config.length; i++) {
-		const error = validateLogFormat(config[i]);
-		if (error) return `Log Format nr ${i + 1}: ${error}`;
-	}
-	return null;
+  for (let i = 0; i < config.length; i++) {
+    const error = validateLogFormat(config[i]);
+    if (error) return `Log Format nr ${i + 1}: ${error}`;
+  }
+  return null;
 }
 
 /**
  * Take a serialized log item and return a log item key to be logged right before it.
  * It prepends and appends spaces for extra padding as necessary according to the LogFormat
  * and whether this is the first log item logged or not.
- * 
+ *
  * @param serializedItemValue The log item's serialised value as a string
  * @param isFirst A boolean indicating whether this is the first item logged
  * @param format The current LogFormat
  * @returns A serialized log item key string
  */
 function createLogItemKey(serializedItemValue: string, isFirst: boolean, format: LogFormat) {
-	const spacePrefix = format.insertSpaces && !isFirst ? ' ' : '';
-	const spaceSuffix = format.insertSpaces? ' ' : '';
-	return quoteString(spacePrefix + shortenIdentifier(serializedItemValue) + ':' + spaceSuffix, format.quoteCharacter);
+  const spacePrefix = format.insertSpaces && !isFirst ? ' ' : '';
+  const spaceSuffix = format.insertSpaces ? ' ' : '';
+  return quoteString(spacePrefix + shortenIdentifier(serializedItemValue) + ':' + spaceSuffix, format.quoteCharacter);
 }
 
 /**
@@ -91,16 +91,16 @@ function createLogItemKey(serializedItemValue: string, isFirst: boolean, format:
  * @returns a string listing the parsed identifiers for logging according to the logger syntax
  */
 function listLogItems(parseResult: ParseResult, format: LogFormat) {
-	return parseResult.logItems.map((logItem: Token[], i: number) => {
-		const serializedItemValue = serializeTokens(logItem, format.quoteCharacter);
-		const itemMatchesLogId = serializedItemValue === parseResult.logId?.value;
-		const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
-		const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
-		return (shouldLogItemKey ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
+  return parseResult.logItems.map((logItem: Token[], i: number) => {
+    const serializedItemValue = serializeTokens(logItem, format.quoteCharacter);
+    const itemMatchesLogId = serializedItemValue === parseResult.logId?.value;
+    const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
+    const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
+    return (shouldLogItemKey ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
 				+ format.identifierPrefix
 				+ serializedItemValue
-				+ format.identifierSuffix
-	}).join(format.parameterSeparator)
+				+ format.identifierSuffix;
+  }).join(format.parameterSeparator);
 }
 
 /**
@@ -112,12 +112,12 @@ function listLogItems(parseResult: ParseResult, format: LogFormat) {
  * @returns A log statement
  */
 export function log(parseResult: ParseResult, format?: LogFormat) {
-	if(!format) format = parseResult.logFormat;
-	if (!format) throw new Error("LogMagic: log needs to be passed a LogFormat or have one on the ParseResult object");
-	const params = [];
-	if (parseResult.logId) params.push(quoteString('' + parseResult.logId.value, format.quoteCharacter));
-	if (parseResult.logItems.length) params.push(listLogItems(parseResult, format));
-	return format.logPrefix
+  if (!format) format = parseResult.logFormat;
+  if (!format) throw new Error('LogMagic: log needs to be passed a LogFormat or have one on the ParseResult object');
+  const params = [];
+  if (parseResult.logId) params.push(quoteString('' + parseResult.logId.value, format.quoteCharacter));
+  if (parseResult.logItems.length) params.push(listLogItems(parseResult, format));
+  return format.logPrefix
 		+ params.join(format.parameterSeparator)
 		+ format.logSuffix;
 }
@@ -129,5 +129,5 @@ export function log(parseResult: ParseResult, format?: LogFormat) {
  * @returns A bound log function
  */
 export function createLogger(format: LogFormat): Logger {
-	return (parseResult: ParseResult) => log(parseResult, format);
+  return (parseResult: ParseResult) => log(parseResult, format);
 }
