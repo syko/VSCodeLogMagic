@@ -2,6 +2,7 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
+    mocha: true,
   },
   extends: [
     'airbnb-base',
@@ -17,12 +18,9 @@ module.exports = {
   settings: {
     'import/resolver': {
       node: {
-        extensions: ['.js', '.ts']
-      }
-    }
-  },
-  globals: {
-    'vscode': 'readonly'
+        extensions: ['.js', '.ts'],
+      },
+    },
   },
   rules: {
     'no-unused-vars': 'off',
@@ -37,9 +35,9 @@ module.exports = {
     'import/extensions': 'off',
     'no-useless-concat': 'off',
     'no-bitwise': 'off',
-    'no-use-before-define': ['error', { 'functions': false, 'classes': true, 'variables': true }],
+    'no-use-before-define': ['error', { functions: false, classes: true, variables: true }],
     'no-console': 'off',
     'no-shadow': 'off',
-    'max-len': 'warn'
+    'max-len': ['warn', { code: 140 }],
   },
 };
