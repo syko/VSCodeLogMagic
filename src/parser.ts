@@ -227,7 +227,7 @@ export const common = {
         endIndex: number;
       let t: Token;
       const operatorIndex: number = findNextLambdaOperatorIndex(tokens, skippedLambdaIndex + 1);
-      if (operatorIndex == -1) break;
+      if (operatorIndex === -1) break;
 
       // Set endIndex to point to the end of the lambda expression
       t = tokens[operatorIndex + 1];
@@ -256,7 +256,7 @@ export const common = {
    * @param result The result to parse and modify in place.
    */
   removeFunctionCalls: (result: ParseResult): void => {
-    const isParen = (t?: Token) => !!t && t.type == TOKEN_PUNCTUATION && t.value === '(';
+    const isParen = (t?: Token) => !!t && t.type === TOKEN_PUNCTUATION && t.value === '(';
     result.tokens = result.tokens.filter((t: Token, i: number) => t.type !== TOKEN_IDENTIFIER || !isParen(result.tokens[i + 1]));
   },
 
@@ -427,9 +427,9 @@ export const common = {
   getSetDefaultIdFn: (interestingKeywords: string[]): ParseStep => {
     return (result: ParseResult): void => {
       // Either use first interesting keyword or first identifier
-      let t: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
-      if (!t) t = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
-      if (t) result.logId = { ...t };
+      let token: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
+      if (!token) token = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
+      if (token) result.logId = { ...token };
     };
   },
 

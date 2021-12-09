@@ -1,7 +1,7 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+/* eslint-disable import/no-unresolved */
 import * as vscode from 'vscode';
-import { createTokenizer, Tokenizer, TOKEN_STRING } from './tokenizer';
+/* eslint-enable import/no-unresolved */
+import { createTokenizer, Tokenizer } from './tokenizer';
 import { Parser, createParser, ParseResult } from './parser';
 import {
   createLogger, LogFormat, Logger, LoggerConfig, validateLoggerConfig,
@@ -13,58 +13,29 @@ import { ensureLogId, isClosingCodeBlock, isOpeningCodeBlock } from './util';
  * A magical item allowing us to output a log statement with a single keypress.
  */
 type MagicItem = {
-	tokenize: Tokenizer;
-	parse: Parser;
-	log: Logger;
-	rotateLog: LogRotator;
-	getCaretPosition: (logStatement: string) => number;
-	isLogStatement: (logStatement: string) => boolean;
+  tokenize: Tokenizer;
+  parse: Parser;
+  log: Logger;
+  rotateLog: LogRotator;
+  getCaretPosition: (logStatement: string) => number;
+  isLogStatement: (logStatement: string) => boolean;
 }
 /**
  * A magical item allowing us to output a log statement with a single keypress.
  */
 type MagicItemOverride = {
-	log: Logger;
-	rotateLog: LogRotator;
+  log: Logger;
+  rotateLog: LogRotator;
 }
 
 /**
  * A mapping between language ids and their corresponding magical items.
  */
 type MagicItems = {
-	[index: string]: MagicItem;
+  [index: string]: MagicItem;
 }
 
 let magicItems: MagicItems = {};
-
-/**
- * Imports the components, creates and caches the magic for a given language.
- * The MagicItems only include default log formats. User-defined configuration is not included.
- *
- * @param languageId The language id
- * @returns The MagicItem for the language
- */
-async function getMagicItem(languageId: string, fallbackId: string = 'javascript'): Promise<MagicItem> {
-  const moduleName = languageIdToModuleName(languageId);
-  if (!magicItems[moduleName]) {
-    try {
-      const {
-        parseSequence, tokenizerConfig, loggerConfig, getCaretPosition,
-      } = await import('./languages/' + moduleName);
-      magicItems[moduleName] = <MagicItem>{
-        tokenize: createTokenizer(tokenizerConfig),
-        parse: createParser(parseSequence),
-        log: createLogger(loggerConfig[0]),
-        rotateLog: createLogRotator(loggerConfig),
-        getCaretPosition: getCaretPosition || createDefaultGetCaretPositionFn(loggerConfig),
-        isLogStatement: createIsLogStatementFn(loggerConfig),
-      };
-    } catch (e) {
-      return getMagicItem(fallbackId); // Return default parser if no direct implementation for this language exists
-    }
-  }
-  return magicItems[moduleName];
-}
 
 /**
  * A function for converting an editor default language setting value to its corresponding
@@ -178,7 +149,7 @@ function findContentfulLine(document: vscode.TextDocument, selection: vscode.Sel
   do {
     line = document.lineAt(lineNr);
     lineNr -= 1;
-  } while (/^\s*[\{\[\()]+\s*$/.test(line.text) && lineNr >= 0);
+  } while (/^\s*[{[()]+\s*$/.test(line.text) && lineNr >= 0);
   return line;
 }
 
@@ -200,10 +171,10 @@ function findAnchorLine(document: vscode.TextDocument, selection: vscode.Selecti
 
   const currentLine = document.lineAt(selection.active.line);
   if (selection.active.line > lineToLog.lineNumber) return currentLine;
-  if (document.lineCount - 1 == selection.active.line) return currentLine;
+  if (document.lineCount - 1 === selection.active.line) return currentLine;
 
   const nextLine = document.lineAt(lineToLog.lineNumber + 1);
-  if (/^\s*[\{\[\(]\s*$/.test(nextLine.text)) return nextLine;
+  if (/^\s*[{[(]\s*$/.test(nextLine.text)) return nextLine;
   return currentLine;
 }
 
@@ -250,6 +221,35 @@ function replaceStatement(editBuilder: vscode.TextEditorEdit, newStatement: stri
 }
 
 /**
+ * Imports the components, creates and caches the magic for a given language.
+ * The MagicItems only include default log formats. User-defined configuration is not included.
+ *
+ * @param languageId The language id
+ * @returns The MagicItem for the language
+ */
+async function getMagicItem(languageId: string, fallbackId: string = 'javascript'): Promise<MagicItem> {
+  const moduleName = languageIdToModuleName(languageId);
+  if (!magicItems[moduleName]) {
+    try {
+      const {
+        parseSequence, tokenizerConfig, loggerConfig, getCaretPosition,
+      } = await import('./languages/' + moduleName);
+      magicItems[moduleName] = <MagicItem>{
+        tokenize: createTokenizer(tokenizerConfig),
+        parse: createParser(parseSequence),
+        log: createLogger(loggerConfig[0]),
+        rotateLog: createLogRotator(loggerConfig),
+        getCaretPosition: getCaretPosition || createDefaultGetCaretPositionFn(loggerConfig),
+        isLogStatement: createIsLogStatementFn(loggerConfig),
+      };
+    } catch (e) {
+      return getMagicItem(fallbackId); // Return default parser if no direct implementation for this language exists
+    }
+  }
+  return magicItems[moduleName];
+}
+
+/**
  * A factory function that creates a LogMagic function that creats new log statements and rotates
  * existing ones in the given direction.
  *
@@ -257,11 +257,11 @@ function replaceStatement(editBuilder: vscode.TextEditorEdit, newStatement: stri
  * @returns a LogMagic function
  */
 function createLogMagicFn(logDirection: -1 | 1) {
-  return async function () {
+  return async function logMagic() {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
 
-    const _ensureLogId = (parseResult: ParseResult): ParseResult => ensureLogId(parseResult, editor.selection.active.line, logDirection);
+    const boundEnsureLogId = (parseResult: ParseResult): ParseResult => ensureLogId(parseResult, editor.selection.active.line, logDirection);
 
     const configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('logMagic', editor.document);
     const defaultLanguage = languageSettingToLanguageId(configuration.get('defaultLanguage')) || 'javascript';
@@ -308,7 +308,7 @@ function createLogMagicFn(logDirection: -1 | 1) {
               return new vscode.Selection(caretPos, caretPos);
             });
           } else {
-            logStatement = (magicOverride?.log || magic.log)(_ensureLogId(magic.parse(magic.tokenize(lineToLog.text.trim()))));
+            logStatement = (magicOverride?.log || magic.log)(boundEnsureLogId(magic.parse(magic.tokenize(lineToLog.text.trim()))));
             writeStatement(editBuilder, indent + logStatement, logAnchor, logDirection);
             selectionChanges.push((selectionIndex: number) => {
               const localCaretPos = magic.getCaretPosition(logStatement!);

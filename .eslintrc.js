@@ -34,6 +34,12 @@ module.exports = {
     'no-plusplus': 'off',
     'prefer-destructuring': 'off',
     'no-continue': 'off',
-    'import/extensions': 'off'
+    'import/extensions': 'off',
+    'no-useless-concat': 'off',
+    'no-bitwise': 'off',
+    'no-use-before-define': ['error', { 'functions': false, 'classes': true, 'variables': true }],
+    'no-console': 'off',
+    'no-shadow': 'off',
+    'max-len': 'warn'
   },
 };

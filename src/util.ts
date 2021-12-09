@@ -9,7 +9,7 @@ export const openingP: string = '{[(';
 export const closingP: string = '}])';
 
 function isPuncOrOp(t: Token): boolean {
-  return t.type == TOKEN_PUNCTUATION || t.type == TOKEN_OPERATOR;
+  return t.type === TOKEN_PUNCTUATION || t.type === TOKEN_OPERATOR;
 }
 
 function isSameParen(t: Token, initialParen: string): boolean {
@@ -18,6 +18,37 @@ function isSameParen(t: Token, initialParen: string): boolean {
 
 function isOppositeParen(t: Token, initialParen: string): boolean {
   return isPuncOrOp(t) && t.value === PARENS_EXT[PARENS_EXT.length - 1 - PARENS_EXT.indexOf(initialParen)];
+}
+
+/**
+ * Wraps the given string in quotation marks and also escapes the same quotation marks in the string.
+ *
+ * @param str The string to wrap in quotation marks
+ * @returns The quoted string
+ */
+export function quoteString(str: string, quoteChar: string = '"'): string {
+  const regex = new RegExp(quoteChar, 'g');
+  return quoteChar + str.replace(regex, `\\${quoteChar}`) + quoteChar;
+}
+
+/**
+ * Serializes the token for output. Wraps string tokens in quotation marks.
+ *
+ * @param token The token to serialize
+ * @returns Serialized token value
+ */
+export function serializeToken(token: Token, quoteChar: string = '"'): string {
+  return token.type === TOKEN_STRING ? quoteString('' + token.value, quoteChar) : '' + token.value;
+}
+
+/**
+ * Return a concatenated token value of the given array of tokens. Quotes string values as necessary.
+ *
+ * @param tokens The tokens whose values to combine
+ * @returns A string of concatenated token values
+ */
+export function serializeTokens(tokens: Token[], quoteChar: string | undefined = undefined): string {
+  return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t, quoteChar), '');
 }
 
 /**
@@ -112,8 +143,8 @@ export function isCompleteCodeBlock(tokens: Token[]): boolean {
  */
 export function getExpressionAt(tokens: Token[], startIndex: number, direction: -1 | 1 = 1): Token[] {
   const P: string = '{[()]}';
-  const includedTokens: Token[] = [tokens[startIndex]];
   const BREAK_CHARS: string = ',;';
+  let includedTokens: Token[] = [tokens[startIndex]];
 
   const isExpressionBreak = (t: Token): boolean => {
     return t.type === TOKEN_PUNCTUATION && BREAK_CHARS.includes('' + t.value);
@@ -121,8 +152,8 @@ export function getExpressionAt(tokens: Token[], startIndex: number, direction: 
 
   const isExpressionBreakByParen = (t: Token): boolean => {
     return t.type === TOKEN_PUNCTUATION && (
-      (direction == 1 && closingP.includes('' + t.value))
-      || (direction == -1 && openingP.includes('' + t.value))
+      (direction === 1 && closingP.includes('' + t.value))
+      || (direction === -1 && openingP.includes('' + t.value))
     );
   };
 
@@ -140,7 +171,7 @@ export function getExpressionAt(tokens: Token[], startIndex: number, direction: 
     if (isParen(tokens[i])) {
       // Include whole code block
       const codeBlock = getCodeBlockAt(tokens, i, direction);
-      includedTokens.push.apply(includedTokens, codeBlock);
+      includedTokens = [...includedTokens, ...codeBlock];
       i += (codeBlock.length - 1) * direction;
     } else includedTokens.push(tokens[i]);
   }
@@ -175,7 +206,7 @@ export function getMatchingTokensRe(tokens: Token[], regex: RegExp, index: numbe
   }
 
   const tokensToSerialize = tokens.slice(index);
-  if (direction == -1) tokensToSerialize.reverse();
+  if (direction === -1) tokensToSerialize.reverse();
   const serializedStr: string = serializeTokens(tokensToSerialize, quoteCharacter);
 
   const match = serializedStr.match(regex);
@@ -186,37 +217,6 @@ export function getMatchingTokensRe(tokens: Token[], regex: RegExp, index: numbe
   }
 
   return getMatchingTokens(tokens, match[0], index, direction, quoteCharacter);
-}
-
-/**
- * Wraps the given string in quotation marks and also escapes the same quotation marks in the string.
- *
- * @param str The string to wrap in quotation marks
- * @returns The quoted string
- */
-export function quoteString(str: string, quoteChar: string = '"'): string {
-  const regex = new RegExp(quoteChar, 'g');
-  return quoteChar + str.replace(regex, `\\${quoteChar}`) + quoteChar;
-}
-
-/**
- * Serializes the token for output. Wraps string tokens in quotation marks.
- *
- * @param token The token to serialize
- * @returns Serialized token value
- */
-export function serializeToken(token: Token, quoteChar: string = '"'): string {
-  return token.type === TOKEN_STRING ? quoteString('' + token.value, quoteChar) : '' + token.value;
-}
-
-/**
- * Return a concatenated token value of the given array of tokens. Quotes string values as necessary.
- *
- * @param tokens The tokens whose values to combine
- * @returns A string of concatenated token values
- */
-export function serializeTokens(tokens: Token[], quoteChar: string | undefined = undefined): string {
-  return tokens.reduce((acc: string, t: Token) => acc + serializeToken(t, quoteChar), '');
 }
 
 /**

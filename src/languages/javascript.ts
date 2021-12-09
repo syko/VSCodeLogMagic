@@ -6,7 +6,7 @@ import {
   Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING,
 } from '../tokenizer';
 import {
-  closingP, findTokenIndex, getCodeBlockAt, serializeToken,
+  findTokenIndex, getCodeBlockAt, serializeToken,
 } from '../util';
 
 const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
@@ -20,7 +20,7 @@ const tokenizerConfig: TokenizerConfig = {
   IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
   IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
   OPERATOR: '-+/*%=<>!|&^?:~',
-  STRING_DELIM: "\"'\`",
+  STRING_DELIM: "\"'`",
   SINGLE_LINE_COMMENT: '//',
   MULTI_LINE_COMMENT_START: '/*',
   MULTI_LINE_COMMENT_END: '*/',
@@ -75,27 +75,6 @@ const removeObjectKeys: ParseStep = (result: ParseResult): void => {
   }
 
   /**
-     * The 'generic' processing function for removal of object keys.
-     * It tries to find code blocks surrounded by curcly braces. If the code block found is
-     * a function definition, it skips over it. If it is an object block it processes it
-     * using the processObjBlock function below.
-     *
-     * @param tokens The tokens to process
-     * @param startIndex The start index for processing
-     */
-  function process(tokens: Token[], startIndex: number): void {
-    let i = startIndex;
-    for (let q = 0; q < 999; q++) {
-      i = findTokenIndex(tokens, TOKEN_PUNCTUATION, '{', i);
-      if (i === -1) return;
-      if (i === 0 || !isFunctionOrLambdaKeyword(tokens[i - 1])) {
-        processObjBlock(tokens, i);
-      }
-      i += getCodeBlockAt(tokens, i).length;
-    }
-  }
-
-  /**
      * The processing function for removing object keys inside the given object block
      * starting at startIndex.
      * Nested code blocks are processed recursively using either the process or
@@ -129,7 +108,30 @@ const removeObjectKeys: ParseStep = (result: ParseResult): void => {
           else processObjBlock(tokens, i);
           i += getCodeBlockAt(tokens, i).length;
           break;
+        default:
+          throw new Error('Unexpected char from findNextDelimeter!');
       }
+    }
+  }
+
+  /**
+     * The 'generic' processing function for removal of object keys.
+     * It tries to find code blocks surrounded by curcly braces. If the code block found is
+     * a function definition, it skips over it. If it is an object block it processes it
+     * using the processObjBlock function below.
+     *
+     * @param tokens The tokens to process
+     * @param startIndex The start index for processing
+     */
+  function process(tokens: Token[], startIndex: number): void {
+    let i = startIndex;
+    for (let q = 0; q < 999; q++) {
+      i = findTokenIndex(tokens, TOKEN_PUNCTUATION, '{', i);
+      if (i === -1) return;
+      if (i === 0 || !isFunctionOrLambdaKeyword(tokens[i - 1])) {
+        processObjBlock(tokens, i);
+      }
+      i += getCodeBlockAt(tokens, i).length;
     }
   }
 

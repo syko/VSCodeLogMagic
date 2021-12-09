@@ -54,13 +54,13 @@ const removeTypes: ParseStep = (result: ParseResult) => {
     if (!block.every((t: Token, i: number) => {
       return i === 0 || i === block.length - 1
                 || t.type === TOKEN_IDENTIFIER
-                || t.type == TOKEN_PUNCTUATION && t.value === ',';
+                || t.type === TOKEN_PUNCTUATION && t.value === ',';
     })) continue;
     // Remove block
     result.tokens.splice(i, block.length);
   }
   // Detect N consecutive identifiers, remove all but the last
-  result.tokens = result.tokens.filter((t: Token, i: number) => t.type !== TOKEN_IDENTIFIER || result.tokens[i + 1]?.type !== TOKEN_IDENTIFIER);
+  result.tokens = result.tokens.filter((t: Token, j: number) => t.type !== TOKEN_IDENTIFIER || result.tokens[j + 1]?.type !== TOKEN_IDENTIFIER);
 };
 
 const parseSequence: ParseSequence = [

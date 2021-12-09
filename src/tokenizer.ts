@@ -269,8 +269,7 @@ export function createTokenizer(config: TokenizerConfig): Tokenizer {
           token = readIdentifier(input);
           break;
         default:
-          const e = new Error(`LogMagic: Tokenizer failed to parse next token "${input.substring(i, 16)}..."`);
-          throw e;
+          throw new Error(`LogMagic: Tokenizer failed to parse next token "${input.substring(i, 16)}..."`);
       }
       tokens.push(token);
     }

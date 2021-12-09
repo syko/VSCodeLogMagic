@@ -76,25 +76,6 @@ const detectLogId: ParseStep = (result: ParseResult): void => {
 };
 
 /**
- * A ParserStep function that looks for log item keys and removes the matching tokens.
- * A "log item key" is a string version of a series of tokens with a colon appended to it and is
- * logged right before the corresponding log item.
- *
- * @param result The result to parse and modify in place
- */
-const removeLogItemKeys: ParseStep = (result: ParseResult): void => {
-  const tokens = result.tokens;
-  for (let i = 0; i < tokens.length - 2; i++) {
-    const token = tokens[i];
-    if (token.type !== TOKEN_STRING || !('' + token.value).trimRight().endsWith(':')) continue;
-    const identifierStr = ('' + token.value).substring(0, ('' + token.value).lastIndexOf(':')).trimLeft();
-    const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, i + 1, 1, result.logFormat!.quoteCharacter);
-    const identifierTokens = getTokensUntilSeparator(tokens, result.logFormat!.parameterSeparator, result.logFormat!, i + separatorTokens.length + 1).next().value;
-    if (identifierTokens.length) tokens.splice(i, 1);
-  }
-};
-
-/**
  * A Generator function that yields arrays of Tokens that are between Tokens that form the given
  * separator string. Separators inside code blocks are ignored.
  *
@@ -126,6 +107,24 @@ function* getTokensUntilSeparator(tokens: Token[], separator: string, logFormat:
   }
   return accumulator;
 }
+
+/**
+ * A ParserStep function that looks for log item keys and removes the matching tokens.
+ * A "log item key" is a string version of a series of tokens with a colon appended to it and is
+ * logged right before the corresponding log item.
+ *
+ * @param result The result to parse and modify in place
+ */
+const removeLogItemKeys: ParseStep = (result: ParseResult): void => {
+  const tokens = result.tokens;
+  for (let i = 0; i < tokens.length - 2; i++) {
+    const token = tokens[i];
+    if (token.type !== TOKEN_STRING || !('' + token.value).trimRight().endsWith(':')) continue;
+    const separatorTokens = getMatchingTokens(tokens, result.logFormat!.parameterSeparator, i + 1, 1, result.logFormat!.quoteCharacter);
+    const identifierTokens = getTokensUntilSeparator(tokens, result.logFormat!.parameterSeparator, result.logFormat!, i + separatorTokens.length + 1).next().value;
+    if (identifierTokens.length) tokens.splice(i, 1);
+  }
+};
 
 /**
  * A ParserStep function that splits the tokens at separator points according to the identified LogFormat's parameterSeparator
