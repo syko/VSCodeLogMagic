@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.5.3] - 2021-12-10
+
+## Fixed
+- Javascript: Fixed first identifier being omitted from output if the line contains a colon
+
 ## [1.5.2] - 2021-12-08
 
 ## Fixed
