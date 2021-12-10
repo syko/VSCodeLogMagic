@@ -1,41 +1,21 @@
 /* eslint-disable import/no-unresolved */
 import * as vscode from 'vscode';
 /* eslint-enable import/no-unresolved */
-import { createTokenizer, Tokenizer } from './tokenizer';
-import { Parser, createParser, ParseResult } from './parser';
+import { ParseResult } from './parser';
 import {
-  createLogger, LogFormat, Logger, LoggerConfig, validateLoggerConfig,
+  createLogger, Logger, LoggerConfig, validateLoggerConfig,
 } from './logger';
 import { createLogRotator, LogRotator } from './logRotator';
 import { ensureLogId, isClosingCodeBlock, isOpeningCodeBlock } from './util';
+import { clearCache, getMagicItem } from './magic';
 
 /**
  * A magical item allowing us to output a log statement with a single keypress.
  */
-type MagicItem = {
-  tokenize: Tokenizer;
-  parse: Parser;
-  log: Logger;
-  rotateLog: LogRotator;
-  getCaretPosition: (logStatement: string) => number;
-  isLogStatement: (logStatement: string) => boolean;
-}
-/**
- * A magical item allowing us to output a log statement with a single keypress.
- */
-type MagicItemOverride = {
+export type MagicItemOverride = {
   log: Logger;
   rotateLog: LogRotator;
 }
-
-/**
- * A mapping between language ids and their corresponding magical items.
- */
-type MagicItems = {
-  [index: string]: MagicItem;
-}
-
-let magicItems: MagicItems = {};
 
 /**
  * A function for converting an editor default language setting value to its corresponding
@@ -50,57 +30,6 @@ function languageSettingToLanguageId(setting: string | undefined): string | unde
     'C#': 'csharp',
   }[setting] || setting; // Pass through if no override found
 }
-
-/**
- * A function for converting languageId to its corresponding
- * module name. This allows to override and reuse language modules.
- *
- * @param languageId The setting value
- * @returns The corresponding module name (file from ./languages)
- */
-function languageIdToModuleName(languageId: string): string {
-  if (!languageId) return languageId;
-  return {
-    javascriptreact: 'javascript',
-  }[languageId] || languageId; // Pass through if no override found
-}
-
-/**
- * A function for determining where the caret should be positioned after logging the line.
- * Each language can implement and export their own getDefaultCaretPosition function but if none
- * is provided this default function is used instead.
- *
- * The default function puts the caret at the end of the log statement just before the log suffix.
- *
- * @param loggerConfig The loggerConfig that contains the possible log statement format for the line
- * @returns (logStatement: string): number - a function that returns an index where the caret should be positioned in the statement
- */
-const createDefaultGetCaretPositionFn = (loggerConfig: LoggerConfig) => {
-  return (logStatement: string): number => {
-    for (let i = 0; i < loggerConfig.length; i++) {
-      const logFormat: LogFormat = loggerConfig[i];
-      if (logStatement.endsWith(logFormat.logSuffix)) return logStatement.length - logFormat.logSuffix.length;
-    }
-    return logStatement.length - 1;
-  };
-};
-
-/**
- * A function for detecting whether a give line of code is a log statement according to the loggerConfig
- * without tokenizing the line of code.
- *
- * @param loggerConfig The loggerConfig that contains the possible log statement format for the line
- * @returns (logStatement: string): boolean
- */
-const createIsLogStatementFn = (loggerConfig: LoggerConfig) => {
-  return (logStatement: string): boolean => {
-    logStatement = logStatement.trimLeft();
-    for (let i = 0; i < loggerConfig.length; i++) {
-      if (logStatement.startsWith(loggerConfig[i].logPrefix.trimLeft())) return true;
-    }
-    return false;
-  };
-};
 
 /**
  * A function for creating an indentation string from the indent size number.
@@ -221,35 +150,6 @@ function replaceStatement(editBuilder: vscode.TextEditorEdit, newStatement: stri
 }
 
 /**
- * Imports the components, creates and caches the magic for a given language.
- * The MagicItems only include default log formats. User-defined configuration is not included.
- *
- * @param languageId The language id
- * @returns The MagicItem for the language
- */
-async function getMagicItem(languageId: string, fallbackId: string = 'javascript'): Promise<MagicItem> {
-  const moduleName = languageIdToModuleName(languageId);
-  if (!magicItems[moduleName]) {
-    try {
-      const {
-        parseSequence, tokenizerConfig, loggerConfig, getCaretPosition,
-      } = await import('./languages/' + moduleName);
-      magicItems[moduleName] = <MagicItem>{
-        tokenize: createTokenizer(tokenizerConfig),
-        parse: createParser(parseSequence),
-        log: createLogger(loggerConfig[0]),
-        rotateLog: createLogRotator(loggerConfig),
-        getCaretPosition: getCaretPosition || createDefaultGetCaretPositionFn(loggerConfig),
-        isLogStatement: createIsLogStatementFn(loggerConfig),
-      };
-    } catch (e) {
-      return getMagicItem(fallbackId); // Return default parser if no direct implementation for this language exists
-    }
-  }
-  return magicItems[moduleName];
-}
-
-/**
  * A factory function that creates a LogMagic function that creats new log statements and rotates
  * existing ones in the given direction.
  *
@@ -364,5 +264,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  magicItems = {};
+  clearCache();
 }
