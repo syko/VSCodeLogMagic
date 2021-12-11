@@ -182,8 +182,8 @@ export function createLogRotator(config: LoggerConfig): LogRotator {
   const parseSequence: ParseSequence = [
     getDetectLogFormatFn(config),
     removeLogSuffix,
-    detectLogId,
     removeLogItemKeys,
+    detectLogId,
     collectLogItems,
     removeIdentifierPrefixesAndSuffixes,
     removeEmptyLogItems,

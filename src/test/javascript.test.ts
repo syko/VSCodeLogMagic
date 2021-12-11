@@ -25,6 +25,10 @@ import { getMagicItem, MagicItem } from '../magic';
 //   'fn = (a, b) ->',
 //   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
 // ],
+// [
+//   'success: (a, b) ->',
+//   'console.log(\'success\', \'a:\', a, \'b:\', b);',
+// ],
 
 // BECAUSE NO MORE FN CALLS
 // [
@@ -73,36 +77,36 @@ import { getMagicItem, MagicItem } from '../magic';
 const logTests = [
   [
     'var foo = 1',
-    'console.log(\'foo\', foo);',
+    'console.log(\'foo:\', foo);',
   ],
   [
     'var obj = {a: 1}',
-    'console.log(\'obj\', obj);',
+    'console.log(\'obj:\', obj);',
   ],
   [
     'var obj = getObj(1, 2)',
-    'console.log(\'obj\', obj);',
+    'console.log(\'obj:\', obj);',
   ],
   [
     'obj = getObj(1, 2)',
-    'console.log(\'obj\', obj);',
+    'console.log(\'obj:\', obj);',
   ],
   [
     'var foo = a + b',
-    'console.log(\'foo\', foo, \'a:\', a, \'b:\', b);',
+    'console.log(\'foo:\', foo, \'a:\', a, \'b:\', b);',
   ],
-  // [
-  //   '{a, b} = getObj(1, 2)',
-  //   'console.log(\'{a, b}\', \'a:\', a, \'b:\', b);',
-  // ],
-  // [
-  //   'var {a:c, b:d} = getObj(1, 2)',
-  //   'console.log(\'{a:c, b:d}\', \'c:\', c, \'d:\', d);',
-  // ],
-  // [
-  //   'var [a, b] = getArr(1, 2)',
-  //   'console.log(\'[a, b]\', \'a:\', a, \'b:\', b);',
-  // ],
+  [
+    '{a, b} = getObj(1, 2)',
+    'console.log(\'a:\', a, \'b:\', b);',
+  ],
+  [
+    'var {a:c, b:d} = getObj(1, 2)',
+    'console.log(\'c:\', c, \'d:\', d);',
+  ],
+  [
+    'var [a, b] = getArr(1, 2)',
+    'console.log(\'a:\', a, \'b:\', b);',
+  ],
   // [
   //   'var [a, b, ...rest] = getArr(1, 2)',
   //   'console.log(\'[a, b, ...rest]\', \'a:\', a, \'b:\', b, \'rest:\', rest);',
@@ -113,7 +117,7 @@ const logTests = [
   // ],
   [
     'let {[a]: b} = getObj()',
-    'console.log(\'b\', b);',
+    'console.log(\'b:\', b);',
   ],
   [
     'return 1',
@@ -163,10 +167,18 @@ const logTests = [
     'fn(a, b) {',
     'console.log(\'fn\', \'a:\', a, \'b:\', b);',
   ],
-  // [
-  //   'const fn = (a, b) =>',
-  //   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-  // ],
+  [
+    'const fn = (a, b) => {',
+    'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+  ],
+  [
+    'const fn = (a, b) =>',
+    'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+  ],
+  [
+    'const fn = (a, b) => { return 12 }',
+    'console.log(\'fn:\', fn);',
+  ],
   [
     'fn = (a, b) => {',
     'console.log(\'fn\', \'a:\', a, \'b:\', b);',
@@ -206,10 +218,6 @@ const logTests = [
   [
     'success: function(a) {',
     'console.log(\'success\', \'a:\', a);',
-  ],
-  [
-    'success: (a, b) ->',
-    'console.log(\'success\', \'a:\', a, \'b:\', b);',
   ],
   [
     'success: (a, b) => {',

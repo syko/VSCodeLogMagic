@@ -24,8 +24,9 @@ import {
  *           each individual token left after parsing is its own "log item" (converted to a single-item array).
  *           The Log Rotator, however, tries to preserve multi-token log items and makes use of this.
  *           A "key:" is generated in front of each log item when generating the log line.
- * logId: A string token representing the "identifier" for the log statement. The logId is the first thing that
- *        is logged and a key is not generated for it. Usually a keyword or the name of the first identifier.
+ * logId: A string token representing the "potential identifier" for the log statement. It is the first thing that is
+ *        outputted in the log statement if it exists. It is omitted from output if it matches the first identifier
+ *        because an item key would be outputted anyway so we don't duplicate it.
  * logFormat: When the ParseResult is given to a Logger function, it will use this LogFormat unless one is
               specified directly.
  */
@@ -300,6 +301,10 @@ export const common = {
       return tokens.findIndex((t: Token, i: number) => i >= fromIndex && t.type === TOKEN_OPERATOR && t.value === '=>');
     };
 
+    const isOpeningBrace = (token: Token): boolean => {
+      return token.type === TOKEN_PUNCTUATION && token.value === '{';
+    };
+
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
 
@@ -312,12 +317,15 @@ export const common = {
       // Find an incomplete lambda
       for (let j = i + 1; j < tokens.length; j++) {
         const operatorIndex = findNextLambdaOperatorIndex(tokens, j);
-        if (operatorIndex === -1 || operatorIndex === tokens.length - 1) return;
-        if (tokens[operatorIndex + 1].type !== TOKEN_PUNCTUATION || tokens[operatorIndex + 1].value !== '{') j = operatorIndex;
-        else if (!isCompleteCodeBlock(getCodeBlockAt(tokens, operatorIndex + 1))) {
+        if (operatorIndex === -1) return;
+        const operatorIsLast = operatorIndex === tokens.length - 1;
+        const openingBraceFollows = !operatorIsLast && isOpeningBrace(tokens[operatorIndex + 1]);
+        const completeCodeBlockFollows = openingBraceFollows && isCompleteCodeBlock(getCodeBlockAt(tokens, operatorIndex + 1));
+        if (operatorIsLast || openingBraceFollows && !completeCodeBlockFollows) {
           tokens.splice(0, i);
           return;
         }
+        if (!operatorIsLast) j = operatorIndex;
       }
     }
   },

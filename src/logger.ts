@@ -1,6 +1,8 @@
 import { ParseResult } from './parser';
 import { Token, TOKEN_IDENTIFIER, TOKEN_KEYWORD } from './tokenizer';
-import { quoteString, serializeTokens, shortenIdentifier } from './util';
+import {
+  quoteString, serializeToken, serializeTokens, shortenIdentifier,
+} from './util';
 
 /**
  * One log statement format configuration for a given language.
@@ -83,8 +85,8 @@ function createLogItemKey(serializedItemValue: string, isFirst: boolean, format:
 /**
  * A function for building the list of tokens for logging based on the given LoggerConfig.
  * Returns a string such as '"someVar:", someVar, "otherVar:", otherVar' or '"someVar:" + someVar.toString() + "otherVar:" + otherVar.toString()'
- * depending on the LoggerConfig. It does not produce a '"someVar:"' string part for an identifier if it's identical to the logId as that's
- * already printed as the first item and also not for items that are only literals (no point printing "\"foo\":" + "foo").
+ * depending on the LoggerConfig. It does not produce a '"someVar:"' string part for an identifier for items that are only literals
+ * (no point printing "\"foo\":" + "foo").
  *
  * @param parseResult The parse result to get tokens from
  * @param format the logger config to use for log syntax
@@ -93,10 +95,8 @@ function createLogItemKey(serializedItemValue: string, isFirst: boolean, format:
 function listLogItems(parseResult: ParseResult, format: LogFormat) {
   return parseResult.logItems.map((logItem: Token[], i: number) => {
     const serializedItemValue = serializeTokens(logItem, format.quoteCharacter);
-    const itemMatchesLogId = serializedItemValue === parseResult.logId?.value;
     const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
-    const shouldLogItemKey = !itemMatchesLogId && !itemIsOnlyLiterals;
-    return (shouldLogItemKey ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
+    return (!itemIsOnlyLiterals ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
         + format.identifierPrefix
         + serializedItemValue
         + format.identifierSuffix;
@@ -114,9 +114,14 @@ function listLogItems(parseResult: ParseResult, format: LogFormat) {
 export function log(parseResult: ParseResult, format?: LogFormat) {
   if (!format) format = parseResult.logFormat;
   if (!format) throw new Error('LogMagic: log needs to be passed a LogFormat or have one on the ParseResult object');
+  const { logId, logItems } = parseResult;
   const params = [];
-  if (parseResult.logId) params.push(quoteString('' + parseResult.logId.value, format.quoteCharacter));
-  if (parseResult.logItems.length) params.push(listLogItems(parseResult, format));
+
+  const logIdMatchesItemKey = logId && logItems.length && serializeToken(logId, format.quoteCharacter) === serializeTokens(logItems[0], format.quoteCharacter);
+  if (logId && !logIdMatchesItemKey) params.push(quoteString('' + logId.value, format.quoteCharacter));
+
+  if (logItems.length) params.push(listLogItems(parseResult, format));
+
   return format.logPrefix
     + params.join(format.parameterSeparator)
     + format.logSuffix;
