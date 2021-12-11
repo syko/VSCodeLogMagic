@@ -107,14 +107,14 @@ const logTests = [
     'var [a, b] = getArr(1, 2)',
     'console.log(\'a:\', a, \'b:\', b);',
   ],
-  // [
-  //   'var [a, b, ...rest] = getArr(1, 2)',
-  //   'console.log(\'[a, b, ...rest]\', \'a:\', a, \'b:\', b, \'rest:\', rest);',
-  // ],
-  // [
-  //   '[a, b, ...rest] = getArr(1, 2)',
-  //   'console.log(\'[a, b, ...rest]\', \'a:\', a, \'b:\', b, \'rest:\', rest);',
-  // ],
+  [
+    'var [a, b, ...rest] = getArr(1, 2)',
+    'console.log(\'a:\', a, \'b:\', b, \'rest:\', rest);',
+  ],
+  [
+    '[a, b, ...rest] = getArr(1, 2)',
+    'console.log(\'a:\', a, \'b:\', b, \'rest:\', rest);',
+  ],
   [
     'let {[a]: b} = getObj()',
     'console.log(\'b:\', b);',

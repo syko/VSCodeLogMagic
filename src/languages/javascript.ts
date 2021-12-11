@@ -169,6 +169,7 @@ const parseSequence: ParseSequence = [
   common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER, TOKEN_KEYWORD], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
   common.getCombineMatchingTokens(TOKEN_NUMBER, HEX_NUMBER_REGEX),
   common.getCombineMatchingTokens(TOKEN_NUMBER, NUMBER_REGEX),
+  common.removeSplats,
   common.removeLambdas,
   common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
   removeObjectKeys,

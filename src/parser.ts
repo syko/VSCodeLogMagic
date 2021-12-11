@@ -262,6 +262,31 @@ export const common = {
   },
 
   /**
+   * Remove 3 consecutive dots that are followed by an identifier.
+   * `foo(a, b, ...rest)` becomes `foo(a, b, rest)` so that `rest` can be
+   * logged as a separate identifier. It is necessary to do this before applying
+   * `getRemoveIncompleteChainedIdentifiersFn`. If our chaining was smarter, this would
+   * not be necessary.
+   *
+   * @param result The result to parse and modify in place.
+   */
+  removeSplats: (result: ParseResult): void => {
+    const tokens = result.tokens;
+
+    function isDot(t: Token) {
+      return t.type === TOKEN_PUNCTUATION && t.value === '.';
+    }
+
+    for (let i = 0; i < tokens.length - 3; i++) {
+      const token = tokens[i];
+      if (isDot(tokens[i]) && isDot(tokens[i + 1]) && isDot(tokens[i + 2]) && tokens[i + 3].type === TOKEN_IDENTIFIER) {
+        tokens.splice(i, 3);
+      }
+    }
+
+  },
+
+  /**
    * Return a ParseStep function for cleaning up identifiers which were part of a chain that could not be
    * combined int a single identifier (via getCombineConsecutiveTokensOfTypeFn).
    *
