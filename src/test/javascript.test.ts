@@ -80,6 +80,18 @@ const logTests = [
     'console.log(\'foo:\', foo);',
   ],
   [
+    'let foo = 1',
+    'console.log(\'foo:\', foo);',
+  ],
+  [
+    'const foo = 1',
+    'console.log(\'foo:\', foo);',
+  ],
+  [
+    'foo = 1',
+    'console.log(\'foo:\', foo);',
+  ],
+  [
     'var obj = {a: 1}',
     'console.log(\'obj:\', obj);',
   ],
@@ -100,19 +112,39 @@ const logTests = [
     'console.log(\'a:\', a, \'b:\', b);',
   ],
   [
-    'var {a:c, b:d} = getObj(1, 2)',
+    'const {a:c, b:d} = getObj(1, 2)',
     'console.log(\'c:\', c, \'d:\', d);',
   ],
   [
-    'var [a, b] = getArr(1, 2)',
+    'const [a, b] = getArr(1, 2)',
     'console.log(\'a:\', a, \'b:\', b);',
   ],
   [
-    'var [a, b, ...rest] = getArr(1, 2)',
+    'case foo:',
+    'console.log(\'case\', \'foo:\', foo);',
+  ],
+  [
+    'const a = someFn(b, c).someTrailingVar;',
+    'console.log(\'a:\', a, \'b:\', b, \'c:\', c);',
+  ],
+  [
+    'let asdf = this.foo[12].foo;',
+    'console.log(\'asdf:\', asdf, \'this.foo[12].foo:\', this.foo[12].foo);',
+  ],
+  [
+    'let asdf = this.foo[12]["something"][23].foof;',
+    'console.log(\'asdf:\', asdf, \'this.foo..23].foof:\', this.foo[12]["something"][23].foof);',
+  ],
+  [
+    'const [a, b, ...rest] = getArr(1, 2)',
     'console.log(\'a:\', a, \'b:\', b, \'rest:\', rest);',
   ],
   [
     '[a, b, ...rest] = getArr(1, 2)',
+    'console.log(\'a:\', a, \'b:\', b, \'rest:\', rest);',
+  ],
+  [
+    'const a = getArr(b, ...rest)',
     'console.log(\'a:\', a, \'b:\', b, \'rest:\', rest);',
   ],
   [
@@ -212,7 +244,7 @@ const logTests = [
     'console.log(\'fn\', \'a:\', a, \'b:\', b, \'c:\', c);',
   ],
   [
-    'fn(a, b).then(a => { 1 })',
+    'fn(a, b).then(c => { 1 })',
     'console.log(\'fn\', \'a:\', a, \'b:\', b);',
   ],
   [
@@ -240,8 +272,28 @@ const logTests = [
     'console.log(\'success\', \'a:\', a, \'b:\', b);',
   ],
   [
-    '$ctrl.onUpdate({ $event: { dates: event.dates } });',
-    'console.log(\'$ctrl.onUpdate\', \'event.dates:\', event.dates);',
+    'function whois({displayName, fullName: {firstName: name}}) {',
+    'console.log(\'whois\', \'displayName:\', displayName, \'name:\', name);',
+  ],
+  [
+    'for (const {name: n, family: {father: f}} of people) {',
+    'console.log(\'for\', \'n:\', n, \'f:\', f, \'people:\', people);',
+  ],
+  [
+    'someCallback: function (param1) {',
+    'console.log(\'someCallback\', \'param1:\', param1);',
+  ],
+  [
+    '"someCallback": function (param1) {',
+    'console.log(\'someCallback\', \'param1:\', param1);',
+  ],
+  [
+    '(someCallback): function (param1) {',
+    'console.log(\'someCallback\', \'param1:\', param1);',
+  ],
+  [
+    'let foo = a ? b : c;',
+    'console.log(\'foo:\', foo, \'a:\', a, \'b:\', b, \'c:\', c);',
   ],
 ];
 
