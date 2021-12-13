@@ -92,11 +92,11 @@ function createLogItemKey(serializedItemValue: string, isFirst: boolean, format:
  * @param format the logger config to use for log syntax
  * @returns a string listing the parsed identifiers for logging according to the logger syntax
  */
-function listLogItems(parseResult: ParseResult, format: LogFormat) {
+function listLogItems(parseResult: ParseResult, format: LogFormat, usingLogId: boolean) {
   return parseResult.logItems.map((logItem: Token[], i: number) => {
     const serializedItemValue = serializeTokens(logItem, format.quoteCharacter);
     const itemIsOnlyLiterals = !logItem.find((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_KEYWORD);
-    return (!itemIsOnlyLiterals ? createLogItemKey(serializedItemValue, !parseResult.logId && i === 0, format) + format.parameterSeparator : '')
+    return (!itemIsOnlyLiterals ? createLogItemKey(serializedItemValue, !usingLogId && i === 0, format) + format.parameterSeparator : '')
         + format.identifierPrefix
         + serializedItemValue
         + format.identifierSuffix;
@@ -118,9 +118,10 @@ export function log(parseResult: ParseResult, format?: LogFormat) {
   const params = [];
 
   const logIdMatchesItemKey = logId && logItems.length && serializeToken(logId, format.quoteCharacter) === serializeTokens(logItems[0], format.quoteCharacter);
-  if (logId && !logIdMatchesItemKey) params.push(quoteString('' + logId.value, format.quoteCharacter));
+  const useLogId = !!logId && !logIdMatchesItemKey;
+  if (useLogId) params.push(quoteString('' + logId.value, format.quoteCharacter));
 
-  if (logItems.length) params.push(listLogItems(parseResult, format));
+  if (logItems.length) params.push(listLogItems(parseResult, format, useLogId));
 
   return format.logPrefix
     + params.join(format.parameterSeparator)
