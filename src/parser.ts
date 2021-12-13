@@ -278,12 +278,10 @@ export const common = {
     }
 
     for (let i = 0; i < tokens.length - 3; i++) {
-      const token = tokens[i];
       if (isDot(tokens[i]) && isDot(tokens[i + 1]) && isDot(tokens[i + 2]) && tokens[i + 3].type === TOKEN_IDENTIFIER) {
         tokens.splice(i, 3);
       }
     }
-
   },
 
   /**
@@ -450,8 +448,8 @@ export const common = {
   },
 
   /**
-   * Return a ParseStep function for determining the best log Id for the ParseResult.
-   * If it finds one of the specified keywords in the remaining tokens, it uses that. Otherwise it uses the first identifier it can find.
+   * Return a ParseStep function for determining the best potential log Id for the ParseResult.
+   * It looks for the first interesting keyword, first identifier and first string in that order.
    * If it can't find anything, the logId is left as undefined.
    *
    * @param interestingKeywords An array of keywords to consider for the logId. All others are ignored.
@@ -459,10 +457,16 @@ export const common = {
    */
   getSetDefaultIdFn: (interestingKeywords: string[]): ParseStep => {
     return (result: ParseResult): void => {
-      // Either use first interesting keyword or first identifier
-      let token: Token | undefined = result.tokens.find((t: Token) => t.type === TOKEN_KEYWORD && interestingKeywords.includes('' + t.value));
-      if (!token) token = result.tokens.find((t: Token) => t.type === TOKEN_IDENTIFIER);
-      if (token) result.logId = { ...token };
+      const tokens = result.tokens;
+      for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i];
+        if (t.type === TOKEN_KEYWORD && interestingKeywords.includes(serializeToken(t))
+          || t.type === TOKEN_IDENTIFIER
+          || t.type === TOKEN_STRING) {
+          result.logId = { ...t };
+          return;
+        }
+      }
     };
   },
 
