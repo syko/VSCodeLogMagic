@@ -180,6 +180,10 @@ const logTests = [
     'console.log(\'if\', \'a:\', a, \'b:\', b);',
   ],
   [
+    'for(let i = 0 ; i < foo.length ; i++) {',
+    'console.log(\'for\', \'i:\', i, \'foo.length:\', foo.length);',
+  ],
+  [
     'fn(a, b)',
     'console.log(\'fn\', \'a:\', a, \'b:\', b);',
   ],
@@ -294,6 +298,10 @@ const logTests = [
   [
     'let foo = a ? b : c;',
     'console.log(\'foo:\', foo, \'a:\', a, \'b:\', b, \'c:\', c);',
+  ],
+  [
+    'fn(foo, 0x2F, 12_233_222, 0b101, 255n);',
+    'console.log(\'fn\', \'foo:\', foo);',
   ],
 ];
 

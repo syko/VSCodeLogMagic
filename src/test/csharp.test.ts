@@ -77,6 +77,18 @@ const logTests = [
     'Console.WriteLine("fn" + " a: " + a + " b: " + b);',
   ],
   [
+    'for (int dx = -neighborhoodRangeX; dx <= neighborhoodRangeX; dx++)',
+    'Console.WriteLine("for" + " dx: " + dx + " neighborhoodRangeX: " + neighborhoodRangeX);',
+  ],
+  [
+    'foreach (Resolution res in Screen.resolutions) {',
+    'Console.WriteLine("res: " + res + " Screen.resolutions: " + Screen.resolutions);',
+  ],
+  [
+    'unappliedSettings.CurrentResolution = resolutions[resolutionPicker.value];',
+    'Console.WriteLine("unapplie..solution: " + unappliedSettings.CurrentResolution + " resoluti..r.value]: " + resolutions[resolutionPicker.value] + " resoluti..er.value: " + resolutionPicker.value);',
+  ],
+  [
     'private void fn(a, b) {',
     'Console.WriteLine("fn" + " a: " + a + " b: " + b);',
   ],
@@ -107,6 +119,10 @@ const logTests = [
   [
     'var foo = a ? b : c;',
     'Console.WriteLine("foo: " + foo + " a: " + a + " b: " + b + " c: " + c);',
+  ],
+  [
+    'fn(foo, 0x123F, 12f, 1_233_333, 0b0101_0011, 2L, 2ul, 2UL)',
+    'Console.WriteLine("fn" + " foo: " + foo);',
   ],
 ];
 
