@@ -6,7 +6,7 @@ Easily print variables and parameters with keyboard shortcuts for quick debuggin
 
 ### Log Quickly
 
-Quickly log variables with a keyboard shortcut.
+Log variables on the current line with a keyboard shortcut.
 
 Just hit `alt+j` and let LogMagic do the work.
 
@@ -23,7 +23,7 @@ return statements.
 
 Press the same keyboard shortcuts when already on a log statement to cycle through different kinds of log statements.
 In javascript for example you can cycle through `log`, `info`, `warn` and `error` levels. In C# you can cycle through
-`System.WriteLine`, `System.Write` and unity's `Debug.Log` options.
+`System.WriteLine`, `System.Write` and Unity's `Debug.Log` options.
 
 ![Log cycle](images/log-cycle.gif "Cycling through log levels is a breeze")
 
