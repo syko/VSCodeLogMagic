@@ -29,6 +29,10 @@ import { getMagicItem, MagicItem } from '../magic';
 //   'success: (a, b) ->',
 //   'console.log(\'success\', \'a:\', a, \'b:\', b);',
 // ],
+// [
+//   'function fn ({a = 5, b = 10} = {}) ->',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+// ],
 
 // BECAUSE NO MORE FN CALLS
 // [
@@ -221,10 +225,6 @@ const logTests = [
   ],
   [
     'function fn({a = 5, b = 10} = {}) {',
-    'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-  ],
-  [
-    'function fn ({a = 5, b = 10} = {}) ->',
     'console.log(\'fn\', \'a:\', a, \'b:\', b);',
   ],
   [
