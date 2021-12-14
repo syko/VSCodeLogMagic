@@ -3,81 +3,6 @@ import { ParseResult } from '../parser';
 import { ensureLogId } from '../util';
 import { getMagicItem, MagicItem } from '../magic';
 
-// WONTFIX
-// BECAUSE COFFEESCRIPT
-// [
-//   'obj = getObj 1, 2',
-//   'console.log(\'obj\', obj);',
-// ],
-// [
-//   'fn a, {b:c}',
-//   'console.log(\'fn\', \'a:\', a, \'c:\', c);',
-// ],
-// [
-//   'fn a, fn(b, c)',
-//   'console.log(\'fn\', \'a:\', a, \'fn(b, c):\', fn(b, c));',
-// ],
-// [
-//   'fn a, b',
-//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-// ],
-// [
-//   'fn = (a, b) ->',
-//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-// ],
-// [
-//   'success: (a, b) ->',
-//   'console.log(\'success\', \'a:\', a, \'b:\', b);',
-// ],
-// [
-//   'function fn ({a = 5, b = 10} = {}) ->',
-//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-// ],
-
-// BECAUSE NO MORE FN CALLS
-// [
-//   'var foo = fn(1, 2) + b',
-//   'console.log(\'foo:\', foo, \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
-// ],
-// [
-//   'foo = fn(1, 2) + b',
-//   'console.log(\'foo:\', foo, \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
-// ],
-// [
-//   'return getObj(1, 2)',
-//   'console.log(\'return\', \'getObj(1, 2):\', getObj(1, 2));',
-// ],
-// [
-//   'return fn(1, 2) + b',
-//   'console.log(\'return\', \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
-// ],
-// [
-//   'if(getObj(1, 2))',
-//   'console.log(\'if\', \'getObj(1, 2):\', getObj(1, 2));',
-// ],
-// [
-//   'if(fn(1, 2) + b)',
-//   'console.log(\'if\', \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
-// ],
-
-// BECAUSE FLOWTYPE
-// [
-//   'var obj:{a:String, b:Number} = getObj(1, 2)',
-//   'console.log(\'obj\', obj);',
-// ],
-// [
-//   'var obj:{a:String, b:Number} = {a:"foo", b:1}',
-//   'console.log(\'obj\', obj);',
-// ],
-// [
-//   'fn(a, b): any {',
-//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-// ],
-// [
-//   'fn({a, b = 25}:SomeType = {}) {',
-//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
-// ],
-
 const logTests = [
   [
     'var foo = 1',
@@ -325,3 +250,79 @@ describe('Javascript Logger', () => {
     it(t[0], () => { assert.strictEqual(createLogStatement(t[0]), t[1]); });
   }
 });
+
+// Most tests were copied over from the sublime version of the same extension
+// These are a WONTFIX, however:
+// because no more coffeescript support (not yet at least):
+// [
+//   'obj = getObj 1, 2',
+//   'console.log(\'obj\', obj);',
+// ],
+// [
+//   'fn a, {b:c}',
+//   'console.log(\'fn\', \'a:\', a, \'c:\', c);',
+// ],
+// [
+//   'fn a, fn(b, c)',
+//   'console.log(\'fn\', \'a:\', a, \'fn(b, c):\', fn(b, c));',
+// ],
+// [
+//   'fn a, b',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+// ],
+// [
+//   'fn = (a, b) ->',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+// ],
+// [
+//   'success: (a, b) ->',
+//   'console.log(\'success\', \'a:\', a, \'b:\', b);',
+// ],
+// [
+//   'function fn ({a = 5, b = 10} = {}) ->',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+// ],
+
+// because no function calls are no longer outputted (breaking change):
+// [
+//   'var foo = fn(1, 2) + b',
+//   'console.log(\'foo:\', foo, \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
+// ],
+// [
+//   'foo = fn(1, 2) + b',
+//   'console.log(\'foo:\', foo, \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
+// ],
+// [
+//   'return getObj(1, 2)',
+//   'console.log(\'return\', \'getObj(1, 2):\', getObj(1, 2));',
+// ],
+// [
+//   'return fn(1, 2) + b',
+//   'console.log(\'return\', \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
+// ],
+// [
+//   'if(getObj(1, 2))',
+//   'console.log(\'if\', \'getObj(1, 2):\', getObj(1, 2));',
+// ],
+// [
+//   'if(fn(1, 2) + b)',
+//   'console.log(\'if\', \'fn(1, 2):\', fn(1, 2), \'b:\', b);',
+// ],
+
+// because no more flowtype support (at least not yet):
+// [
+//   'var obj:{a:String, b:Number} = getObj(1, 2)',
+//   'console.log(\'obj\', obj);',
+// ],
+// [
+//   'var obj:{a:String, b:Number} = {a:"foo", b:1}',
+//   'console.log(\'obj\', obj);',
+// ],
+// [
+//   'fn(a, b): any {',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+// ],
+// [
+//   'fn({a, b = 25}:SomeType = {}) {',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+// ],
