@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.6.0] - 2021-12-17
+
+## Added
+- Javascript: Added support for splat syntax (`...params` now outputs `params` for the log statement)
+- Added unit tests and linting for smoother development
+
+## Changed
+- Log ID is no longer used if it matches an item key (eg. `var a = 1` will output `a:` as an item key rather than `a` as the log id)
+- The first found string is now also considered for the log id
+
 ## [1.5.3] - 2021-12-10
 
 ## Fixed
