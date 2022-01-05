@@ -3,7 +3,7 @@ import { ParseResult } from '../parser';
 import { ensureLogId } from '../util';
 import { getMagicItem, MagicItem } from '../magic';
 
-const logTests = [
+const tests = [
   [
     'var foo = 1',
     'Console.WriteLine("foo: " + foo);',
@@ -141,8 +141,8 @@ describe('C# Logger', () => {
     magic = await getMagicItem('csharp');
   });
 
-  for (let i = 0; i < logTests.length; i++) {
-    const t = logTests[i];
+  for (let i = 0; i < tests.length; i++) {
+    const t = tests[i];
     it(t[0], () => { assert.strictEqual(createLogStatement(t[0]), t[1]); });
   }
 });
