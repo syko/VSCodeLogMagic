@@ -1,4 +1,3 @@
-import { LoggerConfig } from '../logger';
 import {
   ParseSequence, common, ParseStep, ParseResult,
 } from '../parser';
@@ -8,32 +7,35 @@ import {
 import {
   findTokenIndex, getCodeBlockAt, serializeToken,
 } from '../util';
+import {
+  LOG_ID_KEYWORDS as JS_LOG_ID_KEYWORDS,
+  MULTIWORD_KEYWORDS as JS_MULTIWORD_KEYWORDS,
+  IDENTIFIER_CHAIN_CHARS as JS_IDENTIFIER_CHAIN_CHARS,
+  NUMBER_REGEX as JS_NUMBER_REGEX,
+  HEX_NUMBER_REGEX as JS_HEX_NUMBER_REGEX,
+  loggerConfig,
+  tokenizerConfig as jsTokenizerConfig,
+} from './javascript';
 
-const LOG_ID_KEYWORDS = ['if', 'else if', 'else', 'switch', 'case', 'return', 'for', 'while', 'do', 'yield', 'continue', 'break'];
-const MULTIWORD_KEYWORDS = [['else', 'if']];
-const IDENTIFIER_CHAIN_CHARS = ['.'];
-const NUMBER_REGEX = /^-?(0b|0o)?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?(e-?[0-9]+(_[0-9]+)*)?(n)?/i;
-const HEX_NUMBER_REGEX = /^-?(0x)[0-9a-f]+(_[0-9a-f]+)*(n)?/i;
+const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'type', 'symbol'];
+const MULTIWORD_KEYWORDS = JS_MULTIWORD_KEYWORDS;
+const IDENTIFIER_CHAIN_CHARS = JS_IDENTIFIER_CHAIN_CHARS;
+const NUMBER_REGEX = JS_NUMBER_REGEX;
+const HEX_NUMBER_REGEX = JS_HEX_NUMBER_REGEX;
 
 const tokenizerConfig: TokenizerConfig = {
-  PUNCTUATION: ',.;\\[]{}@#()',
-  IDENTIFIER_START: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_',
-  IDENTIFIER: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM$_' + '_1234567890',
-  OPERATOR: '-+/*%=<>!|&^?:~',
-  STRING_DELIM: "\"'`",
-  SINGLE_LINE_COMMENT: '//',
-  MULTI_LINE_COMMENT_START: '/*',
-  MULTI_LINE_COMMENT_END: '*/',
+  PUNCTUATION: jsTokenizerConfig.PUNCTUATION,
+  IDENTIFIER_START: jsTokenizerConfig.IDENTIFIER_START,
+  IDENTIFIER: jsTokenizerConfig.IDENTIFIER,
+  OPERATOR: jsTokenizerConfig.OPERATOR,
+  STRING_DELIM: jsTokenizerConfig.STRING_DELIM,
+  SINGLE_LINE_COMMENT: jsTokenizerConfig.SINGLE_LINE_COMMENT,
+  MULTI_LINE_COMMENT_START: jsTokenizerConfig.MULTI_LINE_COMMENT_START,
+  MULTI_LINE_COMMENT_END: jsTokenizerConfig.MULTI_LINE_COMMENT_END,
   KEYWORD: [
-    'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete',
-    'do', 'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import',
-    'in', 'instanceof', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try',
-    'typeof', 'var', 'void', 'while', 'with', 'yield', 'implements', 'interface', 'let',
-    'package', 'private', 'protected', 'public', 'static', 'yield', 'abstract', 'boolean', 'byte',
-    'char', 'double', 'final', 'float', 'goto', 'int', 'long', 'native', 'short',
-    'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false', 'Infinity', 'of',
-    'Number', 'String', 'Date', 'Error', 'RegExp', 'Map', 'Set', 'WeakMap', 'WeakSet',
-    'Promise', 'await', 'async', 'Intl', 'from', 'as', 'BigInt',
+    ...jsTokenizerConfig.KEYWORD,
+    'enum', 'any', 'constructor', 'declare', 'get', 'module', 'require', 'number', 'readonly', 'set', 'string', 'symbol', 'type',
+    'ReadonlyArray', 'keyof',
   ],
 };
 
@@ -187,52 +189,4 @@ const parseSequence: ParseSequence = [
   common.storeTokensAsLogItems,
 ];
 
-const loggerConfig: LoggerConfig = [
-  {
-    logPrefix: 'console.log(',
-    parameterSeparator: ', ',
-    identifierPrefix: '',
-    identifierSuffix: '',
-    logSuffix: ');',
-    quoteCharacter: '\'',
-    insertSpaces: false,
-  },
-  {
-    logPrefix: 'console.info(',
-    parameterSeparator: ', ',
-    identifierPrefix: '',
-    identifierSuffix: '',
-    logSuffix: ');',
-    quoteCharacter: '\'',
-    insertSpaces: false,
-  },
-  {
-    logPrefix: 'console.warn(',
-    parameterSeparator: ', ',
-    identifierPrefix: '',
-    identifierSuffix: '',
-    logSuffix: ');',
-    quoteCharacter: '\'',
-    insertSpaces: false,
-  },
-  {
-    logPrefix: 'console.error(',
-    parameterSeparator: ', ',
-    identifierPrefix: '',
-    identifierSuffix: '',
-    logSuffix: ');',
-    quoteCharacter: '\'',
-    insertSpaces: false,
-  },
-];
-
-export {
-  LOG_ID_KEYWORDS,
-  MULTIWORD_KEYWORDS,
-  IDENTIFIER_CHAIN_CHARS,
-  NUMBER_REGEX,
-  HEX_NUMBER_REGEX,
-  tokenizerConfig,
-  parseSequence,
-  loggerConfig,
-};
+export { tokenizerConfig, parseSequence, loggerConfig };

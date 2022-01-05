@@ -251,6 +251,8 @@ describe('Javascript Logger', () => {
   }
 });
 
+export default tests;
+
 // Most tests were copied over from the sublime version of the same extension
 // These are a WONTFIX, however:
 // because no more coffeescript support (not yet at least):
