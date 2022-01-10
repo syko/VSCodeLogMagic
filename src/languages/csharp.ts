@@ -41,7 +41,14 @@ const tokenizerConfig: TokenizerConfig = {
   ],
 };
 
-const removeTypes: ParseStep = (result: ParseResult) => {
+/**
+ * A function for removing Generic notation ('<...>').
+ * If it finds `&&` or `||` inside the `<...>` block it assumes it is a conditional instead and
+ * leaves it alone.
+ *
+ * @param result The ParseResult to parse and modify in place
+ */
+const removeGenerics: ParseStep = (result: ParseResult) => {
   // First, remove comma-separated identifiers wrapped in <>
   for (let i = 0; i < result.tokens.length; i++) {
     const token: Token = result.tokens[i];
@@ -53,14 +60,25 @@ const removeTypes: ParseStep = (result: ParseResult) => {
     // Check if the block only contains comma-separated list of identifiers or if we might've found 2 comparisons instead
     if (!block.every((t: Token, i: number) => {
       return i === 0 || i === block.length - 1
-                || t.type === TOKEN_IDENTIFIER
-                || t.type === TOKEN_PUNCTUATION && t.value === ',';
+        || t.type === TOKEN_IDENTIFIER
+        || t.type === TOKEN_PUNCTUATION && t.value === ',';
     })) continue;
     // Remove block
     result.tokens.splice(i, block.length);
   }
+};
+
+/**
+ * A function for removing types from in front of identifiers.
+ * It detects N consecutive identifiers and removes all but the last
+ *
+ * @param result The ParseResult to parse and modify in place
+ */
+const removeTypes: ParseStep = (result: ParseResult) => {
   // Detect N consecutive identifiers, remove all but the last
-  result.tokens = result.tokens.filter((t: Token, j: number) => t.type !== TOKEN_IDENTIFIER || result.tokens[j + 1]?.type !== TOKEN_IDENTIFIER);
+  result.tokens = result.tokens.filter((t: Token, j: number) => {
+    return t.type !== TOKEN_IDENTIFIER || result.tokens[j + 1]?.type !== TOKEN_IDENTIFIER;
+  });
 };
 
 const parseSequence: ParseSequence = [
@@ -71,6 +89,7 @@ const parseSequence: ParseSequence = [
   common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER, TOKEN_KEYWORD], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
   common.getCombineMatchingTokens(TOKEN_NUMBER, HEX_NUMBER_REGEX),
   common.getCombineMatchingTokens(TOKEN_NUMBER, NUMBER_REGEX),
+  removeGenerics,
   removeTypes,
   common.removeLambdas,
   common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
