@@ -15,6 +15,7 @@ import {
   HEX_NUMBER_REGEX as JS_HEX_NUMBER_REGEX,
   loggerConfig,
   tokenizerConfig as jsTokenizerConfig,
+  removeKeyIdentifier,
 } from './javascript';
 
 const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'type', 'symbol'];
@@ -40,8 +41,8 @@ const tokenizerConfig: TokenizerConfig = {
 };
 
 /**
- * A ParseStep function to prevent loggin object keys and add support for
- * destructuring. It simply removes all detected keys in object notations.
+ * A ParseStep function to prevent logging object keys and add support for
+ * destructuring. It simply removes all detected keys in object notation blocks.
  *
  * @param result The ParseResult to parse and modify in place
  */
@@ -138,30 +139,6 @@ const removeObjectKeys: ParseStep = (result: ParseResult): void => {
   }
 
   process(result.tokens, 0);
-};
-
-/**
- * A function for removing the identifier that has been set as the log id but seems to be an object key.
- * eg. in case of `someObjKey: function(p) {` we want someObjKey to be the log id but not actually log it.
- *
- * @param result The ParseResult to parse and modify in place
- */
-const removeKeyIdentifier: ParseStep = (result: ParseResult): void => {
-  const tokens = result.tokens;
-  const keyPos = tokens.findIndex((t: Token) => t.type === TOKEN_IDENTIFIER || t.type === TOKEN_STRING);
-  const colonPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === ':');
-  if (keyPos === -1 || colonPos === -1 || colonPos < keyPos) return;
-  if (result.logId?.value !== serializeToken(tokens[keyPos])) return;
-
-  // Make sure not to mistake ternary for an object key notation
-  const ternaryPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === '?');
-  if (ternaryPos !== -1 && ternaryPos < colonPos) return;
-
-  const onlyPuncBetween = tokens.every((t: Token, i: Number) => i <= keyPos || i >= colonPos || t.type === TOKEN_PUNCTUATION);
-
-  if (!onlyPuncBetween) return;
-
-  tokens.splice(keyPos, 1);
 };
 
 /**

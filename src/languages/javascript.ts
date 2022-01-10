@@ -151,12 +151,19 @@ const removeKeyIdentifier: ParseStep = (result: ParseResult): void => {
   if (keyPos === -1 || colonPos === -1 || colonPos < keyPos) return;
   if (result.logId?.value !== serializeToken(tokens[keyPos])) return;
 
+  // If the line does not define a new function, assume the colon is for a type instead
+  // (assumes complete lambdas have already been removed)
+  const isFunction = tokens.some((t: Token) => {
+    return t.type === TOKEN_KEYWORD && t.value === 'function'
+      || t.type === TOKEN_OPERATOR && t.value === '=>';
+  });
+  if (!isFunction) return;
+
   // Make sure not to mistake ternary for an object key notation
   const ternaryPos = tokens.findIndex((t: Token) => t.type === TOKEN_OPERATOR && t.value === '?');
   if (ternaryPos !== -1 && ternaryPos < colonPos) return;
 
   const onlyPuncBetween = tokens.every((t: Token, i: Number) => i <= keyPos || i >= colonPos || t.type === TOKEN_PUNCTUATION);
-
   if (!onlyPuncBetween) return;
 
   tokens.splice(keyPos, 1);
@@ -232,6 +239,7 @@ export {
   IDENTIFIER_CHAIN_CHARS,
   NUMBER_REGEX,
   HEX_NUMBER_REGEX,
+  removeKeyIdentifier,
   tokenizerConfig,
   parseSequence,
   loggerConfig,
