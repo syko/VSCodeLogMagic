@@ -5,7 +5,7 @@ import {
   Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING,
 } from '../tokenizer';
 import {
-  findTokenIndex, getCodeBlockAt, serializeToken,
+  findTokenIndex, getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, serializeToken,
 } from '../util';
 import {
   LOG_ID_KEYWORDS as JS_LOG_ID_KEYWORDS,
@@ -164,6 +164,30 @@ const removeKeyIdentifier: ParseStep = (result: ParseResult): void => {
   tokens.splice(keyPos, 1);
 };
 
+/**
+ * A function for removing Generic notation ('<...>').
+ * If it finds `&&` or `||` inside the `<...>` block it assumes it is a conditional instead and
+ * leaves it alone.
+ *
+ * @param result
+ */
+const removeGenerics: ParseStep = (result: ParseResult) => {
+  const LOGICAL_OPERATORS = ['&&', '||'];
+  // Remove everything wrapped in <> unless it contains logical operators
+  for (let i = 0; i < result.tokens.length; i++) {
+    const token: Token = result.tokens[i];
+    if (token.type !== TOKEN_OPERATOR || token.value !== '<') continue;
+    // Found '<', look for '>'
+    const block = getCodeBlockAt(result.tokens, i, 1, PARENS_EXT);
+    // If there is no end to the block it must be a comparison
+    if (!isCompleteCodeBlock(block)) continue;
+    // If the block contains logical operators, leave it alone
+    if (block.find((t: Token) => t.type === TOKEN_OPERATOR && LOGICAL_OPERATORS.includes('' + t.value))) continue;
+    // Remove block
+    result.tokens.splice(i, block.length);
+  }
+};
+
 const parseSequence: ParseSequence = [
   common.removeWhitespace,
   common.removeComments,
@@ -174,6 +198,7 @@ const parseSequence: ParseSequence = [
   common.removeSplats,
   common.removeLambdas,
   common.getCombineConsecutiveTokensOfValueFn(TOKEN_KEYWORD, MULTIWORD_KEYWORDS, ' '),
+  removeGenerics,
   removeObjectKeys,
   common.getSetDefaultIdFn(LOG_ID_KEYWORDS),
   removeKeyIdentifier,
