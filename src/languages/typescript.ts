@@ -5,7 +5,7 @@ import {
   Token, TokenizerConfig, TOKEN_IDENTIFIER, TOKEN_KEYWORD, TOKEN_NUMBER, TOKEN_OPERATOR, TOKEN_PUNCTUATION, TOKEN_STRING,
 } from '../tokenizer';
 import {
-  findTokenIndex, getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, serializeToken,
+  findTokenIndex, getCodeBlockAt, isCompleteCodeBlock, PARENS_EXT, serializeToken, shortenIdentifier,
 } from '../util';
 import {
   LOG_ID_KEYWORDS as JS_LOG_ID_KEYWORDS,
@@ -146,7 +146,7 @@ const removeObjectKeys: ParseStep = (result: ParseResult): void => {
  * If it finds `&&` or `||` inside the `<...>` block it assumes it is a conditional instead and
  * leaves it alone.
  *
- * @param result
+ * @param result The ParseResult to parse and modify in place
  */
 const removeGenerics: ParseStep = (result: ParseResult) => {
   const LOGICAL_OPERATORS = ['&&', '||'];
@@ -162,6 +162,138 @@ const removeGenerics: ParseStep = (result: ParseResult) => {
     if (block.find((t: Token) => t.type === TOKEN_OPERATOR && LOGICAL_OPERATORS.includes('' + t.value))) continue;
     // Remove block
     result.tokens.splice(i, block.length);
+  }
+};
+
+/**
+ * A function for removing all function return types.
+ * It looks for a `function` keyword or lambda notation and removes everything
+ * between the list of parameters and the opening brace / lambda operator.
+ *
+ * @param result The ParseResult to parse and modify in place
+ */
+const removeReturnTypes: ParseStep = (result: ParseResult) => {
+  const tokens = result.tokens;
+
+  function isOpeningParen(token: Token) {
+    return token.type === TOKEN_PUNCTUATION && token.value === '(';
+  }
+  function isClosingParen(token: Token) {
+    return token.type === TOKEN_PUNCTUATION && token.value === ')';
+  }
+  function isOpeningBrace(token: Token) {
+    return token.type === TOKEN_PUNCTUATION && token.value === '{';
+  }
+  function isFunctionKeyword(token: Token) {
+    return token.type === TOKEN_KEYWORD && token.value === 'function';
+  }
+  function isLambdaOperator(token: Token) {
+    return token.type === TOKEN_OPERATOR && token.value === '=>';
+  }
+
+  let kwPos: number = -1;
+  for (let q = 0; q < 999; q++) {
+    // Find `function` keyword
+    // eslint-disable-next-line no-loop-func
+    kwPos = tokens.findIndex((t: Token, i: number) => i > kwPos && isFunctionKeyword(t));
+    if (kwPos === -1) break;
+    // Find the end of its list of parameters
+    // eslint-disable-next-line no-loop-func
+    const parenPos = tokens.findIndex((t: Token, i: number) => i > kwPos && isOpeningParen(t));
+    if (parenPos === -1) break;
+    const block = getCodeBlockAt(tokens, parenPos);
+    if (!isCompleteCodeBlock(block)) break;
+    const removeFrom = parenPos + block.length + 1;
+    // Check if there is a return type
+    // Remove everything until the opening brace
+    const bracePos = tokens.findIndex((t: Token, i: number) => i > removeFrom && isOpeningBrace(t));
+    if (bracePos === -1) break;
+    tokens.splice(removeFrom, bracePos - removeFrom);
+  }
+
+  let lambdaPos: number = -1;
+  for (let q = 0; q < 999; q++) {
+    // Find a lambda operator
+    // eslint-disable-next-line no-loop-func
+    lambdaPos = tokens.findIndex((t: Token, i: number) => i > lambdaPos && isLambdaOperator(t));
+    if (lambdaPos === -1) break;
+    // Find the end of its list of parameters
+    let closingParenPos = -1;
+    for (let i = lambdaPos - 1; i > 0; i--) {
+      if (isClosingParen(tokens[i])) {
+        closingParenPos = i;
+        break;
+      }
+    }
+    if (closingParenPos === -1) break;
+    if (closingParenPos === lambdaPos - 1) break;
+    tokens.splice(closingParenPos + 1, lambdaPos);
+  }
+};
+
+/**
+ * A function for removing all idenfitifer types.
+ * It looks for colons outside of object notation blocks
+ * that are preceded by an identifier (and optionally `?` for optional parameters)
+ * and removes everything until it encounters a `,`, `=` or `)`
+ * unless there is a ternary `?` somewhere earlier in the statement.
+ *
+ * @param result The ParseResult to parse and modify in place
+ */
+const removeTypes: ParseStep = (result: ParseResult) => {
+  const tokens = result.tokens;
+
+  function isIdentifier(token: Token) {
+    return token.type === TOKEN_IDENTIFIER;
+  }
+  function isColon(token: Token) {
+    return token.type === TOKEN_OPERATOR && (token.value === ':' || token.value === '?:');
+  }
+  function isComma(token: Token) {
+    return token.type === TOKEN_PUNCTUATION && token.value === ',';
+  }
+  function isQuestionMark(token: Token) {
+    return token.type === TOKEN_OPERATOR && token.value === '?';
+  }
+  function isEqualOp(token: Token) {
+    return token.type === TOKEN_OPERATOR && token.value === '=';
+  }
+  function isClosingParen(token: Token) {
+    return token.type === TOKEN_PUNCTUATION && token.value === ')';
+  }
+  function isOpeningBrace(token: Token) {
+    return token.type === TOKEN_PUNCTUATION && token.value === '{';
+  }
+
+  for (let i = 1; i < tokens.length; i++) {
+    const token = tokens[i];
+    // Skip object notations
+    if (isOpeningBrace(token)) {
+      const block = getCodeBlockAt(tokens, i);
+      if (!isCompleteCodeBlock(block)) return;
+      i += block.length - 1;
+      continue;
+    }
+    if (!isColon(token)) continue;
+    // Found colon at i
+    // Check that it's preceded by an identifier
+    if (!isIdentifier(tokens[i - 1])) continue;
+    // ternary `?` that comes earlier and is not immediately followed by a `)` or `,` (optional param notation)
+    const ternaryPos = tokens.findIndex((t: Token, j: number) => {
+      return j < i - 1 && isQuestionMark(t) && !isComma(tokens[j + 1]) && !isClosingParen(tokens[j + 1]);
+    });
+    if (ternaryPos !== -1) return;
+    let removeUntil: number;
+    for (removeUntil = i + 1; removeUntil < tokens.length; removeUntil++) {
+      // Skip code blocks
+      const block = getCodeBlockAt(tokens, removeUntil);
+      if (isCompleteCodeBlock(block)) {
+        removeUntil += block.length - 1;
+        continue;
+      }
+      if (isComma(tokens[removeUntil]) || isClosingParen(tokens[removeUntil]) || isEqualOp(tokens[removeUntil])) break;
+    }
+    tokens.splice(i, removeUntil - i);
   }
 };
 
@@ -181,6 +313,8 @@ const parseSequence: ParseSequence = [
   removeKeyIdentifier,
   common.removeFunctionDeclarationAssignees,
   common.removeLambdaDeclarationAssignees,
+  removeReturnTypes,
+  removeTypes,
   common.removeFunctionCalls,
   common.getRemoveIncompleteChainedIdentifiersFn(IDENTIFIER_CHAIN_CHARS),
   common.removeLiterals,

@@ -23,7 +23,7 @@ const tests = [
   ],
   [
     'function greet(person: Person, date: Date): Greeting {',
-    'console.log(\'greet\', \'person:\', person, \'date\', date);',
+    'console.log(\'greet\', \'person:\', person, \'date:\', date);',
   ],
   [
     'function move(animal: Fish | Bird | Human) {',
@@ -66,6 +66,10 @@ const tests = [
     'console.log(\'firstElement\', \'arr:\', arr);',
   ],
   [
+    'const firstElement = <Type>(arr: Type[]): Type | undefined => {',
+    'console.log(\'firstElement\', \'arr:\', arr);',
+  ],
+  [
     'function longest<Type extends OtherType>(a: Type, b: Type) {',
     'console.log(\'longest\', \'a:\', a, \'b:\', b);',
   ],
@@ -84,6 +88,14 @@ const tests = [
   [
     'function create<Type>(c: { new (): Type }): Type {',
     'console.log(\'create\', \'c:\', c);',
+  ],
+  [
+    'const foo: Type = bar() ? foo1 : foo2;',
+    'console.log(\'foo:\', foo, \'foo1:\', foo1, \'foo2:\', foo2);',
+  ],
+  [
+    'const foo: Type = bar(check ? foo1 : foo2);',
+    'console.log(\'foo:\', foo, \'check:\', check, \'foo1:\', foo1, \'foo2:\', foo2);',
   ],
 ];
 
