@@ -12,6 +12,12 @@ Just hit `alt+j` and let LogMagic do the work.
 
 ![Log anything quickly](images/log-anything.gif "Log anything quickly")
 
+### Supported Languages
+
+- Javascript
+- Typescript
+- C#
+
 ### Up / Down Support
 
 You can also log upwards with `alt+k`. This is especially helpful when you want to inspect
@@ -41,12 +47,6 @@ It always puts your caret at the end of the generated log statement for easy man
 ### Customize
 
 You can use the `logMagig.logFormats` configuration to create your own log statements to cycle through for each language / workspace / resource. You can even wrap logged identifiers in your own decorator functions or append `.toString()` for example.
-
-
-### Supported Languages
-
-- Javascript
-- C#
 
 **Note:** it might still work for unsupported languages as well. You can use the extension settings to specify a default language that will define how it parses code and override the shape of the log statement for that language. The only way that it should ever "fail" is in determining what is and what is not an interesting variable to output. If the language is similar to any of the supported languages, it might work well enough.
 
