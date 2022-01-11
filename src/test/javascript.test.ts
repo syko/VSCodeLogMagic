@@ -317,16 +317,16 @@ export default tests;
 
 // because no more flowtype support (at least not yet):
 // [
-//   'var obj:{a:String, b:Number} = getObj(1, 2)',
+//   'var obj:{a:String, b:Number} = getObj(1, 2)', // Fixed by typescript support
 //   'console.log(\'obj\', obj);',
 // ],
 // [
-//   'var obj:{a:String, b:Number} = {a:"foo", b:1}',
+//   'var obj:{a:String, b:Number} = {a:"foo", b:1}', // Fixed by typescript support
 //   'console.log(\'obj\', obj);',
 // ],
 // [
 //   'fn(a, b): any {',
-//   'console.log(\'fn\', \'a:\', a, \'b:\', b);',
+//   'console.log(\'fn\', \'a:\', a, \'b:\', b);', // Fixed by typescript support
 // ],
 // [
 //   'fn({a, b = 25}:SomeType = {}) {',
