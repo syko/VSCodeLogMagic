@@ -297,6 +297,21 @@ const removeTypes: ParseStep = (result: ParseResult) => {
   }
 };
 
+/**
+ * A function for removing type casts (`... as SomeType`).
+ *
+ * @param result The ParseResult to parse and modify in place
+ */
+const removeTypeCasts: ParseStep = (result: ParseResult) => {
+  const tokens = result.tokens;
+  for (let i = 0; i < tokens.length - 1; i++) {
+    if (tokens[i].type !== TOKEN_KEYWORD || tokens[i].value !== 'as') continue;
+    if (tokens[i + 1].type !== TOKEN_IDENTIFIER) continue;
+    tokens.splice(i, 2);
+    i--;
+  }
+};
+
 const parseSequence: ParseSequence = [
   common.removeWhitespace,
   common.removeComments,
@@ -315,6 +330,7 @@ const parseSequence: ParseSequence = [
   common.removeLambdaDeclarationAssignees,
   removeReturnTypes,
   removeTypes,
+  removeTypeCasts,
   common.removeFunctionCalls,
   common.getRemoveIncompleteChainedIdentifiersFn(IDENTIFIER_CHAIN_CHARS),
   common.removeLiterals,
