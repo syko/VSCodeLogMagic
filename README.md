@@ -2,6 +2,12 @@
 
 Easily print variables and parameters with keyboard shortcuts for quick debugging.
 
+### Supported Languages
+
+- Javascript
+- Typescript
+- C#
+
 ## Features
 
 ### Log Quickly
@@ -11,12 +17,6 @@ Log variables on the current line with a keyboard shortcut.
 Just hit `alt+j` and let LogMagic do the work.
 
 ![Log anything quickly](images/log-anything.gif "Log anything quickly")
-
-### Supported Languages
-
-- Javascript
-- Typescript
-- C#
 
 ### Up / Down Support
 
