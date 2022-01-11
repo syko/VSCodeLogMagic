@@ -135,7 +135,6 @@ export const common = {
    * Return a ParseStep function for combining consecutive tokens into a single token.
    * Eg. Specifying [['else', 'if'], ['not', 'in']] will combine consecutive 'else', 'if' and 'not', 'in' tokens into 'else if' and 'not in' tokens.
    *
-   * @param types A whitelist of token types to consider when looking for matches
    * @param newType What the type of the combined token should be
    * @param valuesToCombine An array of keywords to combine. Each keyword is a sub-array with individual words as separate items.
    * @param separator An optional separator string to use when joining token values

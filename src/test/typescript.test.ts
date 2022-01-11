@@ -14,6 +14,10 @@ const tests = [
     'console.log(\'myName:\', myName);',
   ],
   [
+    'let foo: Type = fn(p?.name, p?.age);',
+    'console.log(\'foo:\', foo, \'p?.name:\', p?.name, \'p?.age:\', p?.age);',
+  ],
+  [
     'const x = "hello" as number;',
     'console.log(\'x:\', x);',
   ],

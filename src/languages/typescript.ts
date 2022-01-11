@@ -20,7 +20,7 @@ import {
 
 const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'type', 'symbol'];
 const MULTIWORD_KEYWORDS = JS_MULTIWORD_KEYWORDS;
-const IDENTIFIER_CHAIN_CHARS = JS_IDENTIFIER_CHAIN_CHARS;
+const IDENTIFIER_CHAIN_CHARS = [...JS_IDENTIFIER_CHAIN_CHARS, '?.'];
 const NUMBER_REGEX = JS_NUMBER_REGEX;
 const HEX_NUMBER_REGEX = JS_HEX_NUMBER_REGEX;
 
@@ -316,6 +316,7 @@ const parseSequence: ParseSequence = [
   common.removeWhitespace,
   common.removeComments,
   common.combineBracketNotation,
+  common.getCombineConsecutiveTokensOfValueFn(TOKEN_PUNCTUATION, [['?', '.']]),
   common.getCombineConsecutiveTokensOfTypeFn([TOKEN_IDENTIFIER, TOKEN_KEYWORD], TOKEN_IDENTIFIER, IDENTIFIER_CHAIN_CHARS),
   common.getCombineMatchingTokens(TOKEN_NUMBER, HEX_NUMBER_REGEX),
   common.getCombineMatchingTokens(TOKEN_NUMBER, NUMBER_REGEX),
