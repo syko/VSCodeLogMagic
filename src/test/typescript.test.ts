@@ -98,6 +98,10 @@ const tests = [
     'console.log(\'foo:\', foo, \'foo1:\', foo1, \'foo2:\', foo2);',
   ],
   [
+    'const foo: Type = bar() ? foo1?.foo2 : foo3;',
+    'console.log(\'foo:\', foo, \'foo1?.foo2:\', foo1?.foo2, \'foo3:\', foo3);',
+  ],
+  [
     'const foo: Type = bar(check ? foo1 : foo2);',
     'console.log(\'foo:\', foo, \'check:\', check, \'foo1:\', foo1, \'foo2:\', foo2);',
   ],
