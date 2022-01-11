@@ -113,9 +113,10 @@ export function getCodeBlockAt(tokens: Token[], startIndex: number, direction: -
   const includedTokens: Token[] = [tokens[startIndex]];
   let depth = 0;
 
-  if (!isPuncOrOp(tokens[startIndex]) || !parens.includes(initialParen)) {
-    return [];
-  }
+  if (!isPuncOrOp(tokens[startIndex])) return [];
+  if (!parens.includes(initialParen)) return [];
+  if (direction === 1 && parens.indexOf(initialParen) >= parens.length / 2) return [];
+  if (direction === -1 && parens.indexOf(initialParen) < parens.length / 2) return [];
 
   for (let i = startIndex + direction; i > 0 && i < tokens.length; i += direction) {
     includedTokens.push(tokens[i]);
