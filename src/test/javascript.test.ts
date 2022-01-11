@@ -225,6 +225,10 @@ const tests = [
     'console.log(\'foo:\', foo, \'a:\', a, \'b:\', b, \'c:\', c);',
   ],
   [
+    'let foo = a ? fn(a ? b : c) : (d ? e : f);',
+    'console.log(\'foo:\', foo, \'a:\', a, \'b:\', b, \'c:\', c, \'d:\', d, \'e:\', e, \'f:\', f);',
+  ],
+  [
     'fn(foo, 0x2F, 12_233_222, 0b101, 255n);',
     'console.log(\'fn\', \'foo:\', foo);',
   ],
