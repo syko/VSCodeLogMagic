@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.7.0] - 2022-01-11
+
+## Added
+- Typescript support!
+- Javascript: BigInt now recognized as a keyword
+
 ## [1.6.0] - 2021-12-17
 
 ## Added
