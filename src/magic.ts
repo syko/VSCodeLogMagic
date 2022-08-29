@@ -37,6 +37,7 @@ function languageIdToModuleName(languageId: string): string {
   if (!languageId) return languageId;
   return {
     javascriptreact: 'javascript',
+    typescriptreact: 'typescript',
   }[languageId] || languageId; // Pass through if no override found
 }
 
