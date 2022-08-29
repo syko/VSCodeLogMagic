@@ -209,16 +209,16 @@ const tests = [
     'console.log(\'for\', \'n:\', n, \'f:\', f, \'people:\', people);',
   ],
   [
-    'someCallback: function (param1) {',
-    'console.log(\'someCallback\', \'param1:\', param1);',
+    'someKey: function (param1) {',
+    'console.log(\'someKey\', \'param1:\', param1);',
   ],
   [
-    '"someCallback": function (param1) {',
-    'console.log(\'someCallback\', \'param1:\', param1);',
+    '"someKey": function (param1) {',
+    'console.log(\'someKey\', \'param1:\', param1);',
   ],
   [
-    '[someCallback]: function (param1) {',
-    'console.log(\'someCallback\', \'param1:\', param1);',
+    '[someKey]: function (param1) {',
+    'console.log(\'someKey\', \'param1:\', param1);',
   ],
   [
     'let foo = a ? b : c;',
