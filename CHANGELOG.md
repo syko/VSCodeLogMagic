@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.7.1] - 2022-08-29
+
+## Fixed
+- Typescript React files (.tsx) now use Typescript mode automatically
+- Fixed missing option of setting Typescript as the default language
+
 ## [1.7.0] - 2022-01-11
 
 ## Added
