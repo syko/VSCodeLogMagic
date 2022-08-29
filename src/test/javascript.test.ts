@@ -217,7 +217,7 @@ const tests = [
     'console.log(\'someCallback\', \'param1:\', param1);',
   ],
   [
-    '(someCallback): function (param1) {',
+    '[someCallback]: function (param1) {',
     'console.log(\'someCallback\', \'param1:\', param1);',
   ],
   [
