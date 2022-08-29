@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.7.2] - 2022-08-29
+
+## Fixed
+- Typescript: No longer outputting the type of a destructuring expression (`({a, b}: Type) => { ... })`)
+
 ## [1.7.1] - 2022-08-29
 
 ## Fixed
