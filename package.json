@@ -50,6 +50,7 @@
 					"description": "The default language to use when the active language is not directly supported by LogMagic.",
 					"enum": [
 						"javascript",
+						"typescript",
 						"C#"
 					],
 					"default": "javascript"
