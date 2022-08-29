@@ -235,6 +235,7 @@ const removeReturnTypes: ParseStep = (result: ParseResult) => {
  * A function for removing all idenfitifer types.
  * It looks for colons outside of object notation blocks
  * that are preceded by an identifier (and optionally `?` for optional parameters)
+ * or a {destructuring codeblock}
  * and removes everything until it encounters a `,`, `=` or `)`
  * unless there is a ternary `?` somewhere earlier in the statement.
  *
@@ -277,7 +278,7 @@ const removeTypes: ParseStep = (result: ParseResult) => {
     if (!isColon(token)) continue;
     // Found colon at i
     // Check that it's preceded by an identifier
-    if (!isIdentifier(tokens[i - 1])) continue;
+    if (!isIdentifier(tokens[i - 1]) && getCodeBlockAt(tokens, i - 1, -1, '{}').length === 0) continue;
     // ternary `?` that comes earlier and is not immediately followed by a `)` or `,` (optional param notation)
     const ternaryPos = tokens.findIndex((t: Token, j: number) => {
       return j < i - 1 && isQuestionMark(t) && !isComma(tokens[j + 1]) && !isClosingParen(tokens[j + 1]);

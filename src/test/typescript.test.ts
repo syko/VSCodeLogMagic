@@ -105,6 +105,10 @@ const tests = [
     'const foo: Type = bar(check ? foo1 : foo2);',
     'console.log(\'foo:\', foo, \'check:\', check, \'foo1:\', foo1, \'foo2:\', foo2);',
   ],
+  [
+    'function foo({ a, b }: Type) {',
+    'console.log(\'foo\', \'a:\', a, \'b:\', b);',
+  ],
 ];
 
 function mockedEnsureLogId(result: ParseResult) {
