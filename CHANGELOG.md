@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.7.3] - 2023-01-18
+
+## Fixed
+- Javascript & Typescript: `undefined` is now treated as a keyword
+
 ## [1.7.2] - 2022-08-29
 
 ## Fixed
