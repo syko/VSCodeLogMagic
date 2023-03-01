@@ -118,7 +118,7 @@ Because I can never remember what I need to do and I spend an hour trying to fin
 1. Guide is here: https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 2. Update changelog
 3. Run `vsce publish [major|minor|patch]`. It will automatically bump the version & make a commit + tag
-4. If token expired: go to https://dev.azure.com/iamsyko => upper left corner => generate a new PAT with permissions Marketplace > Manage.
+4. If token expired: go to https://dev.azure.com/iamsyko => second icon from upper left corner => generate a new PAT with permissions Marketplace > Manage.
 
 ## Release Notes
 
