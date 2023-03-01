@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.7.5] - 2023-03-01
+
+## Fixed
+- Typescript: `type` is now an allowed variable name
+
 ## [1.7.4] - 2023-01-18
 
 ## Added
