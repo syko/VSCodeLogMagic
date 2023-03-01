@@ -2,79 +2,79 @@
 
 ## [1.7.5] - 2023-03-01
 
-## Fixed
+### Fixed
 - Typescript: `type` is now an allowed variable name
 
 ## [1.7.4] - 2023-01-18
 
-## Added
+### Added
 - Nothing
 
 ## [1.7.3] - 2023-01-18
 
-## Fixed
+### Fixed
 - Javascript & Typescript: `undefined` is now treated as a keyword
 
 ## [1.7.2] - 2022-08-29
 
-## Fixed
+### Fixed
 - Typescript: No longer outputting the type of a destructuring expression (`({a, b}: Type) => { ... })`)
 
 ## [1.7.1] - 2022-08-29
 
-## Fixed
+### Fixed
 - Typescript React files (.tsx) now use Typescript mode automatically
 - Fixed missing option of setting Typescript as the default language
 
 ## [1.7.0] - 2022-01-11
 
-## Added
+### Added
 - Typescript support!
 - Javascript: BigInt now recognized as a keyword
 
 ## [1.6.0] - 2021-12-17
 
-## Added
+### Added
 - Javascript: Added support for splat syntax (`...params` now outputs `params` for the log statement)
 - Added unit tests and linting for smoother development
 
-## Changed
+### Changed
 - Log ID is no longer used if it matches an item key (eg. `var a = 1` will output `a:` as an item key rather than `a` as the log id)
 - The first found string is now also considered for the log id
 
 ## [1.5.3] - 2021-12-10
 
-## Fixed
+### Fixed
 - Javascript: Fixed first identifier being omitted from output if the line contains a colon
 
 ## [1.5.2] - 2021-12-08
 
-## Fixed
+### Fixed
 - Javascript: Fixed trying to log object key in cases like `someKey: function(p) {`
 
 ## [1.5.1] - 2021-11-25
 
-## Changed
+### Changed
 - Updated README
 
 ## [1.5.0] - 2021-11-25
 
-## Added
+### Added
 - Added support for any number of consecutive bracket notations (`foo[1][2][3]` will be considered a single identifier)
 
-## Fixed
+### Fixed
 - Javascript: Fixed `false` not being recognized as a keyword
 - C#: `get` and `set` can now be log ids
 - Keywords / Std class names no longer break identifier chains
 - Bracket notation no longer breaks identifier chains (`foo[1][2].chained[3]` will be considered a single identifier)s
 
-## Changed
+### Changed
 - All setting types are now `resource` so they can be overridden at any configuration level
 - Improved README
 
 ## [1.4.1] - 2021-11-19
 
-## Fixed
+### Fixed
 - Fixed exception if logging on lines with very large indentation
 - Fixed indent when logging after switch cases (`case foo:`)
 - Fixed exception when a line of code ends with the lambda operator `=>`
@@ -82,7 +82,7 @@
 
 ## [1.4.0] - 2021-11-19
 
-## Added
+### Added
 - Long log item keys are now shortened ('someVeryLongIdentifier:' becomes 'someVery..entifier:')
 
 ## [1.3.0] - 2021-11-18
@@ -91,7 +91,7 @@
 - Fixed erronesouly logging object keys as variables
 - Javascript: Improved the list of known keywords
 
-## Added
+### Added
 - Javascript: Added support for destructuring syntax
 
 ## [1.2.2] - 2021-09-30
@@ -137,4 +137,5 @@
 
 ## [1.0.0] - 2021-09-21
 
+### Added
 - Initial release with support for C#, javascript and javascriptreact
