@@ -18,7 +18,7 @@ import {
   removeKeyIdentifier,
 } from './javascript';
 
-const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'type', 'symbol'];
+const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'symbol'];
 const MULTIWORD_KEYWORDS = JS_MULTIWORD_KEYWORDS;
 const IDENTIFIER_CHAIN_CHARS = [...JS_IDENTIFIER_CHAIN_CHARS, '?.'];
 const NUMBER_REGEX = JS_NUMBER_REGEX;
