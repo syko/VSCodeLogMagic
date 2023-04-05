@@ -29,8 +29,8 @@ const tokenizerConfig: TokenizerConfig = {
     'do', 'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import',
     'in', 'instanceof', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try',
     'typeof', 'var', 'void', 'while', 'with', 'yield', 'implements', 'interface', 'let',
-    'package', 'private', 'protected', 'public', 'static', 'yield', 'abstract', 'boolean', 'byte',
-    'char', 'double', 'final', 'float', 'goto', 'int', 'long', 'native', 'short',
+    'package', 'private', 'protected', 'public', 'static', 'yield', 'abstract', 'boolean', /*'byte',*/
+    'char', 'double', /*'final',*/ 'float', 'goto', 'int', 'long', 'native', 'short',
     'synchronized', 'throws', 'transient', 'volatile', 'null', 'true', 'false', 'Infinity', 'of',
     'Number', 'String', 'Date', 'Error', 'RegExp', 'Map', 'Set', 'WeakMap', 'WeakSet',
     'Promise', 'await', 'async', 'Intl', 'from', 'as', 'BigInt', 'undefined',
