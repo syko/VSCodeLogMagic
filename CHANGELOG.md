@@ -1,6 +1,8 @@
 # Change Log
 
 ## [1.7.6] - 2023-04-05
+
+### Fixed
 - Typescript: `type` really is now an allowed variable name (no really, this time I promise)
 - Typescript: `module`, `set`, `symbol`, `byte` and `final` are also now allowed variable names
 - Javascript: `byte` and `final` are also now allowed variable names
