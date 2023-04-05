@@ -35,8 +35,8 @@ const tokenizerConfig: TokenizerConfig = {
   MULTI_LINE_COMMENT_END: jsTokenizerConfig.MULTI_LINE_COMMENT_END,
   KEYWORD: [
     ...jsTokenizerConfig.KEYWORD,
-    'enum', 'any', 'constructor', 'declare', 'get', 'module', 'require', 'number', 'readonly', 'set', 'string', 'symbol'/*, 'type'*/,
-    'ReadonlyArray', 'keyof',
+    'enum', 'any', 'constructor', 'declare', 'get', /*'module',*/ 'require', 'number', 'readonly',
+    /*'set',*/ 'string', /*'symbol', 'type',*/ 'ReadonlyArray', 'keyof',
   ],
 };
 
