@@ -18,7 +18,7 @@ import {
   removeKeyIdentifier,
 } from './javascript';
 
-const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'symbol'];
+const LOG_ID_KEYWORDS = [...JS_LOG_ID_KEYWORDS, 'enum', 'type', 'symbol'];
 const MULTIWORD_KEYWORDS = JS_MULTIWORD_KEYWORDS;
 const IDENTIFIER_CHAIN_CHARS = [...JS_IDENTIFIER_CHAIN_CHARS, '?.'];
 const NUMBER_REGEX = JS_NUMBER_REGEX;
@@ -35,7 +35,7 @@ const tokenizerConfig: TokenizerConfig = {
   MULTI_LINE_COMMENT_END: jsTokenizerConfig.MULTI_LINE_COMMENT_END,
   KEYWORD: [
     ...jsTokenizerConfig.KEYWORD,
-    'enum', 'any', 'constructor', 'declare', 'get', 'module', 'require', 'number', 'readonly', 'set', 'string', 'symbol', 'type',
+    'enum', 'any', 'constructor', 'declare', 'get', 'module', 'require', 'number', 'readonly', 'set', 'string', 'symbol'/*, 'type'*/,
     'ReadonlyArray', 'keyof',
   ],
 };
